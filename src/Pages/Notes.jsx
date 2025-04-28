@@ -3,7 +3,7 @@ import { useLocation, Link } from "react-router-dom"
 import ReactMarkdown from "react-markdown"
 import { useState, useEffect, useRef } from "react"
 
-import Navbar from "../components/Navbar" // Adjust import path as needed
+import Navbar from "../Components/Navbar" // Adjust import path as needed
 
 // Text-to-Speech component extracted outside of Notes component
 function TextToSpeechButton({ textToRead }) {
@@ -274,7 +274,7 @@ function AccordionQuestion({ question }) {
         body: JSON.stringify({
           contents: [{
             parts: [{
-              text: `Please provide a clear answer to this question:  ${question} remember it should not be long but still informative`,
+              text: `Please provide a clear and concise answer to this question: ${question}`
             }]
           }],
           generationConfig: {

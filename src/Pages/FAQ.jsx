@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Navbar from '../components/Navbar';
+import Navbar from '../Components/Navbar';
 
 
 const faqData = [
@@ -17,7 +17,7 @@ const FAQItem = ({ question, answer, isOpen, onClick }) => (
   <div className="border-b">
     <button
       onClick={onClick}
-      className="hover:text-red-500 px-3  w-full flex justify-between items-center py-4 text-left h-[10vh]"
+      className="hover:text-red-500 px-3 py-2 w-full flex justify-between items-center py-4 text-left h-[10vh]"
     >
       <span className="text-lg font-medium">{question}</span>
       <span>{isOpen ? '-' : '+'}</span>

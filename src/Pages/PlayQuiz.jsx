@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import Navbar from '../components/Navbar'; // Adjust import path as needed
+import Navbar from '../Components/Navbar'; // Adjust import path as needed
 
 export default function QuizPage() {
   const location = useLocation();
@@ -104,7 +104,7 @@ export default function QuizPage() {
             Redirecting to home in {redirectTimer} seconds...
           </div>
           <button
-            onClick={() => navigate("/quiz")}
+            onClick={() => navigate("/")}
             className="mt-8 px-8 py-4 bg-gray-800 text-white rounded-full text-lg font-bold hover:bg-black transition-all duration-300"
           >
             Go Home Now

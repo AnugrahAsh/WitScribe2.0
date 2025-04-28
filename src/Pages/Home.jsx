@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Navbar from '../components/Navbar'; // Adjust import path as needed
+import Navbar from '../Components/Navbar'; // Adjust import path as needed
 import HomeImage from '../assets/homeImage.webp'
 
 
@@ -77,21 +77,9 @@ const Home = () => {
     const payload = {
       contents: [{
         parts: [{
-          text: `Rewrite the following YouTube video transcript as a well-structured essay-like document with clear paragraphs. DO NOT USE BULLET POINTS OR LISTS.
-
-          STRICT FORMAT REQUIREMENTS:
-          1. Use ONLY paragraph format - NO bullet points, NO numbered lists, NO asterisks
-          2. Write in complete sentences within cohesive paragraphs
-          3. Use headings (## Heading) to separate major sections
-          4. Each section should contain 2-4 paragraphs of text explaining the concepts
-          5. For any step-by-step instructions, write them as narrative paragraphs, not as lists
-          the language should be clear and concise, suitable for a general audience and easy to understand but also informative and engaging.
-          6. Keep the content flowing naturally as a continuous article
-          
-          The document should start with a title (# Title) and a brief introduction paragraph. Then proceed with major sections using ## Section Headings. Each section should contain multiple paragraphs of explanatory text without bullets or lists.
-          
-          Remember - NO BULLET POINTS, NO LISTS, only paragraph text and headings.
-          
+          text: `Create comprehensive, well-structured notes from the following YouTube video transcript. 
+          Break it down into sections with clear headings, don't use any puctuation marks , also remove all the special symbols used, don't use asterisk (*) symbol in the lines and summarize main ideas, make sure it relates to the topic of the video and should also include examples that simplifies learning.
+          Format the response in markdown.
           TRANSCRIPT:
           ${truncatedTranscript}`
         }]
@@ -103,7 +91,7 @@ const Home = () => {
         maxOutputTokens: 8192,
       }
     };
-    
+
     const response = await fetch(apiEndpoint, {
       method: 'POST',
       headers: {
@@ -117,15 +105,7 @@ const Home = () => {
       throw new Error('Failed to generate notes with AI');
     }
 
-    // Additional processing to remove any remaining bullet points or lists
-    let formattedNotes = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No content returned.';
-    
-    // Replace bullet points and numbered lists with paragraph formatting
-    formattedNotes = formattedNotes
-      .replace(/^\s*[\*\-]\s+/gm, '') // Remove bullet point markers
-      .replace(/^\s*\d+\.\s+/gm, '')  // Remove numbered list markers
-      
-    return formattedNotes;
+    return data.candidates?.[0]?.content?.parts?.[0]?.text || 'No content returned.';
   };
 
   const handleKeyDown = (e) => {
@@ -180,6 +160,7 @@ const Home = () => {
       )}
     </div>
     </>
+
   );
 };
 

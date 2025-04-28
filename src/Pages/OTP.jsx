@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import Navbar from "../components/Navbar"; // Adjust import path as needed
+import Navbar from "../Components/Navbar"; // Adjust import path as needed
 
 export default function OTP() {
   const [otp, setOtp] = useState(new Array(6).fill(""));

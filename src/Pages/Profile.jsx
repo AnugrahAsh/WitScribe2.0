@@ -1,36 +1,108 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import perosonol from '../assets/persononlaptop.webp';
 import { FiCamera } from 'react-icons/fi';
-import Navbar from '../components/Navbar';
+import Navbar from '../Components/Navbar';
+import { logOut } from '../services/authService';
+import { setDoc, doc, getDoc, updateDoc } from "firebase/firestore";
+import { db } from "../firebase";
+import { useAuth } from "../context/AuthContext";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { onSnapshot } from "firebase/firestore";
+import UserImage from '../assets/user.png';
 
 const UserProfile = () => {
   const [image, setImage] = useState(null);
   const [profileData, setProfileData] = useState({
-    firstName: 'Sara',
-    lastName: 'Tancredi',
-    email: 'Sara.Tancredi@gmail',
-    phone: '(+98) 9123728167',
-    location: 'New York, USA',
-    postalCode: '23728167',
+    displayName: '',
+    email: '',
+    phone: '',
+    location: '',
+    postalCode: '',
+    photoURL: '',
   });
-
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-
-  const handleLogout = () => {
-    localStorage.removeItem("userToken");
-    navigate("/landing");
-  };
-
+  const { currentUser, userProfile } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  const handleSaveChanges = (e) => {
-    e.preventDefault();
+  // Load user profile from Firestore or create if not exists
+  useEffect(() => {
+    async function fetchProfile() {
+      if (!currentUser) return;
+      const userRef = doc(db, "users", currentUser.uid);
+      const userSnap = await getDoc(userRef);
+      if (userSnap.exists()) {
+        setProfileData(userSnap.data());
+      } else {
+        // Create user doc with registration details
+        const newProfile = {
+          displayName: currentUser.displayName || '',
+          email: currentUser.email,
+          phone: '',
+          location: '',
+          postalCode: '',
+          photoURL: currentUser.photoURL || '',
+          createdAt: new Date()
+        };
+        await setDoc(userRef, newProfile);
+        setProfileData(newProfile);
+      }
+      setLoading(false);
+    }
+    if (currentUser) fetchProfile();
+  }, [currentUser]);
+
+  useEffect(() => {
+    if (!currentUser) {
+      setProfileData(null);
+      return;
+    }
+    const userRef = doc(db, 'users', currentUser.uid);
+    const unsubscribe = onSnapshot(userRef, (docSnap) => {
+      setProfileData(docSnap.data());
+    });
+    return unsubscribe;
+  }, [currentUser]);
+
+  const handleLogout = async () => {
+    await logOut();
+    navigate('/login');
   };
+
+  // Save profile changes
+  const handleSaveChanges = async (e) => {
+    e.preventDefault();
+    if (!currentUser) return;
+    const userRef = doc(db, "users", currentUser.uid);
+    await updateDoc(userRef, {
+      displayName: profileData.displayName,
+      phone: profileData.phone,
+      location: profileData.location,
+      postalCode: profileData.postalCode,
+      photoURL: profileData.photoURL,
+    });
+    alert('Profile updated!');
+  };
+
+  // Handle profile picture upload
+  const handleImageUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file || !currentUser) return;
+    const storage = getStorage();
+    const storageRef = ref(storage, `profilePictures/${currentUser.uid}`);
+    await uploadBytes(storageRef, file);
+    const url = await getDownloadURL(storageRef);
+    // Save to Firestore
+    await updateDoc(doc(db, 'users', currentUser.uid), { photoURL: url });
+    setProfileData(prev => ({ ...prev, photoURL: url }));
+  };
+
+  if (loading) return <div>Loading...</div>;
 
   return (
     <>
-      <Navbar />
+      <Navbar userPhoto={userProfile?.photoURL || profileData?.photoURL || UserImage} />
       <div className="min-h-screen bg-transparent mt-4">
         <div className="lg:hidden fixed top-4 left-4 z-20">
           <button
@@ -76,7 +148,7 @@ const UserProfile = () => {
               <div className="flex flex-col sm:flex-row items-center mb-8">
                 <div className="relative mb-4 sm:mb-0">
                   <img
-                    src={image ? URL.createObjectURL(image) : perosonol}
+                    src={userProfile?.photoURL || profileData?.photoURL || perosonol}
                     alt="Profile"
                     className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg"
                   />
@@ -86,62 +158,58 @@ const UserProfile = () => {
                       type="file"
                       accept="image/*"
                       className="hidden"
-                      onChange={(event) => {
-                        const file = event.target.files[0];
-                        if (file) setImage(file);
-                        else setImage(null);
-                      }}
+                      onChange={handleImageUpload}
                     />
                   </label>
                 </div>
                 <div className="ml-0 sm:ml-4 text-center sm:text-left">
-                  <h2 className="text-2xl font-semibold">Sara Tancredi</h2>
-                  <p className="text-gray-500">New York, USA</p>
+                  <h2 className="text-2xl font-semibold">{profileData?.displayName || profileData?.email}</h2>
+                  <p className="text-gray-500">{profileData?.location}</p>
                 </div>
               </div>
 
               <form onSubmit={handleSaveChanges} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Display Name</label>
                     <input
                       type="text"
-                      placeholder="Enter first name"
-                      value={profileData.firstName}
-                      onChange={(e) => setProfileData({ ...profileData, firstName: e.target.value })}
+                      placeholder="Enter display name"
+                      value={profileData?.displayName || ''}
+                      onChange={(e) => setProfileData({ ...profileData, displayName: e.target.value })}
                       className="w-full p-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 placeholder-gray-400"
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
-                    <input
-                      type="text"
-                      placeholder="Enter last name"
-                      value={profileData.lastName}
-                      onChange={(e) => setProfileData({ ...profileData, lastName: e.target.value })}
-                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 placeholder-gray-400"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
                     <input
                       type="email"
                       placeholder="Enter email"
-                      value={profileData.email}
-                      onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
-                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 placeholder-gray-400"
+                      value={profileData?.email || ''}
+                      disabled
+                      className="w-full p-2 border border-gray-300 rounded-md bg-gray-100 placeholder-gray-400"
                     />
                   </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
                     <input
                       type="tel"
                       placeholder="Enter phone number"
-                      value={profileData.phone}
+                      value={profileData?.phone || ''}
                       onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
+                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 placeholder-gray-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. New York, USA"
+                      value={profileData?.location || ''}
+                      onChange={(e) => setProfileData({ ...profileData, location: e.target.value })}
                       className="w-full p-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 placeholder-gray-400"
                     />
                   </div>
@@ -149,21 +217,11 @@ const UserProfile = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. New York, USA"
-                      value={profileData.location}
-                      onChange={(e) => setProfileData({ ...profileData, location: e.target.value })}
-                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 placeholder-gray-400"
-                    />
-                  </div>
-                  <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Postal Code</label>
                     <input
                       type="text"
                       placeholder="Enter postal code"
-                      value={profileData.postalCode}
+                      value={profileData?.postalCode || ''}
                       onChange={(e) => setProfileData({ ...profileData, postalCode: e.target.value })}
                       className="w-full p-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 placeholder-gray-400"
                     />

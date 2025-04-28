@@ -1,7 +1,20 @@
 // Community.jsx (Main community page listing questions)
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import Navbar from "../components/Navbar"; // Adjust import path as needed
+import Navbar from "../Components/Navbar"; // Adjust import path as needed
+import { db } from "../firebase";
+import {
+  collection,
+  addDoc,
+  updateDoc,
+  doc,
+  onSnapshot,
+  query,
+  orderBy,
+  arrayUnion,
+  increment
+} from "firebase/firestore";
+import { useAuth } from '../context/AuthContext';
 
 const initialQuestions = [
   {
@@ -32,43 +45,77 @@ const initialQuestions = [
 ];
 
 export default function Community() {
+  const { currentUser } = useAuth();
   const [darkMode, setDarkMode] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [questions, setQuestions] = useState(initialQuestions);
+  const [questions, setQuestions] = useState([]);
   const [newQuestion, setNewQuestion] = useState({ title: "", description: "" });
+  const [search, setSearch] = useState("");
+  const [commentInput, setCommentInput] = useState({}); // { [questionId]: commentText }
 
-  const handleAddQuestion = (e) => {
+  // Fetch questions in real-time
+  useEffect(() => {
+    const q = query(collection(db, "questions"), orderBy("createdAt", "desc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setQuestions(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
+    return unsubscribe;
+  }, []);
+
+  // Add a new question
+  const handleAddQuestion = async (e) => {
     e.preventDefault();
-    if (newQuestion.title.trim()) {
-      setQuestions([
-        {
-          id: questions.length + 1,
-          author: "User",
-          title: newQuestion.title,
-          description: newQuestion.description,
-          likes: 0,
-          comments: [],
-          isLiked: false
-        },
-        ...questions
-      ]);
+    if (newQuestion.title.trim() && currentUser) {
+      await addDoc(collection(db, "questions"), {
+        title: newQuestion.title,
+        description: newQuestion.description,
+        author: currentUser.displayName || currentUser.email,
+        authorId: currentUser.uid,
+        likes: 0,
+        likedBy: [],
+        comments: [],
+        createdAt: new Date()
+      });
       setNewQuestion({ title: "", description: "" });
       setIsModalOpen(false);
     }
   };
 
-  const handleLike = (id) => {
-    setQuestions(questions.map(q => {
-      if (q.id === id) {
-        return {
-          ...q,
-          likes: q.isLiked ? q.likes - 1 : q.likes + 1,
-          isLiked: !q.isLiked
-        };
-      }
-      return q;
-    }));
+  // Like/unlike a question
+  const handleLike = async (question) => {
+    if (!currentUser) return;
+    const questionRef = doc(db, "questions", question.id);
+    const userId = currentUser.uid;
+    await updateDoc(questionRef, {
+      likes: question.likedBy?.includes(userId) ? increment(-1) : increment(1),
+      likedBy: question.likedBy?.includes(userId)
+        ? question.likedBy.filter(u => u !== userId)
+        : [...(question.likedBy || []), userId]
+    });
   };
+
+  // Add a comment
+  const handleAddComment = async (questionId) => {
+    if (!currentUser) return;
+    const comment = commentInput[questionId];
+    if (!comment) return;
+    const questionRef = doc(db, "questions", questionId);
+    await updateDoc(questionRef, {
+      comments: arrayUnion({
+        author: currentUser.displayName || currentUser.email,
+        authorId: currentUser.uid,
+        text: comment,
+        createdAt: new Date()
+      })
+    });
+    setCommentInput({ ...commentInput, [questionId]: "" });
+  };
+
+  // Search questions
+  const filteredQuestions = questions.filter(q =>
+    q.title.toLowerCase().includes(search.toLowerCase()) ||
+    (q.description && q.description.toLowerCase().includes(search.toLowerCase()))
+  );
 
   return (
     <div className={`flex flex-col min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
@@ -84,6 +131,8 @@ export default function Community() {
             <div className="max-w-md w-full">
               <input
                 type="text"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
                 placeholder="Search for the topic and discussion"
                 className="w-full px-4 py-2 rounded-lg bg-white text-gray-900 placeholder-gray-500 border border-gray-200"
               />
@@ -122,9 +171,8 @@ export default function Community() {
       <main className={`flex flex-1 p-4 ${darkMode ? 'bg-gray-900 text-white' : 'bg-white text-black'}`}>
         <div className="flex-1 max-w-3xl mx-auto">
           <h1 className="text-2xl font-bold mb-6">Community Questions</h1>
-          
           <div className="space-y-4">
-            {questions.map((question) => (
+            {filteredQuestions.map((question) => (
               <div key={question.id} className={`border rounded-lg p-4 ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="font-medium">{question.author}</span>
@@ -136,21 +184,43 @@ export default function Community() {
                   )}
                 </Link>
                 <div className="flex gap-4">
-                  <button 
-                    onClick={() => handleLike(question.id)}
+                  <button
+                    onClick={() => handleLike(question)}
                     className="flex items-center gap-1 text-red-500"
                   >
-                    {question.isLiked ? '❤' : '♡'} {question.likes}
+                    {question.likedBy?.includes(currentUser?.uid) ? '❤' : '♡'} {question.likes}
                   </button>
-                  <Link to={`/community/question/${question.id}`} className="flex items-center gap-1">
-                    💬 {question.comments.length}
-                  </Link>
+                  <span className="flex items-center gap-1">
+                    💬 {question.comments?.length || 0}
+                  </span>
+                </div>
+                {/* Comment Section */}
+                <div className="mt-2">
+                  <input
+                    type="text"
+                    value={commentInput[question.id] || ""}
+                    onChange={e => setCommentInput({ ...commentInput, [question.id]: e.target.value })}
+                    placeholder="Add a comment..."
+                    className="w-2/3 px-2 py-1 rounded border"
+                  />
+                  <button
+                    onClick={() => handleAddComment(question.id)}
+                    className="ml-2 px-2 py-1 bg-blue-500 text-white rounded"
+                  >
+                    Comment
+                  </button>
+                  <div className="mt-2 space-y-1">
+                    {question.comments?.map((c, idx) => (
+                      <div key={idx} className="text-sm text-gray-400">
+                        <span className="font-semibold text-gray-200">{c.author}:</span> {c.text}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         </div>
-
         <aside className="hidden lg:block w-80 ml-4">
           <div className={`border rounded-lg p-4 ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
             <h3 className="font-bold mb-2">Popular Tags</h3>
@@ -164,7 +234,6 @@ export default function Community() {
           </div>
         </aside>
       </main>
-
       {/* Add Question Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
