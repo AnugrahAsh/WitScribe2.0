@@ -104,7 +104,7 @@ export default function QuizPage() {
             Redirecting to home in {redirectTimer} seconds...
           </div>
           <button
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/quiz")}
             className="mt-8 px-8 py-4 bg-gray-800 text-white rounded-full text-lg font-bold hover:bg-black transition-all duration-300"
           >
             Go Home Now

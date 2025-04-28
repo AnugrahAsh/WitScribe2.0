@@ -274,7 +274,7 @@ function AccordionQuestion({ question }) {
         body: JSON.stringify({
           contents: [{
             parts: [{
-              text: `Please provide a clear and concise answer to this question: ${question}`
+              text: `Please provide a clear answer to this question:  ${question} remember it should not be long but still informative`,
             }]
           }],
           generationConfig: {

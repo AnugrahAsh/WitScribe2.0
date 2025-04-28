@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import quizIllustration from '../assets/quiz-illustration.webp';
-import Navbar from '../Components/Navbar';
-
+import Navbar from '../components/Navbar'; // Adjust import path as needed
 const GEMINI_API_KEY = "AIzaSyA6j1QQ77ETh5v7ImpSCWT6ZCWVDlGnOSg";
 
 export default function Quiz1() {

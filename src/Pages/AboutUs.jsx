@@ -7,7 +7,7 @@ import nighty from '../assets/nightlamp.webp'
 import manwrit from '../assets/manwriting.webp'
 import personal from '../assets/persononlaptop.webp'
 import star from '../assets/star-trail-removebg-preview.webp'
-import Navbar from '../Components/Navbar';
+import Navbar from '../components/Navbar';
 import laks from '../assets/lakshya1.webp'
 import anug from '../assets/anugrah.webp'
 import vicky from '../assets/mrajarao.webp'

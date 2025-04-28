@@ -25,7 +25,7 @@ export default function LandingPage() {
       <section className="text-center bg-gray-300 py-40 mb-4 rounded-xl shadow">
         <h1 className="text-6xl font-bold mb-4 leading-22">Level Up Your Studies <br /> With WitScribe</h1>
         <p className="text-gray-700 text-xl mb-6">Supercharge Your Studies with Us —<br />Embark on a Transformative Learning Journey Today!</p>
-        <Link to = "/register">
+        <Link to = "/home">
         <button className="bg-red-500 hover:bg-red-600 text-white font-semibold py-4 px-10 rounded-full shadow-md">Explore for free &rarr;</button>
       </Link>
       </section>
@@ -45,7 +45,7 @@ export default function LandingPage() {
             What if we say you can learn what is in the video faster and much better without even watching the video
             with the help of Artificial Intelligence
           </p>
-          <Link to = "/register">
+          <Link to = "/home">
           <button className="bg-black text-white py-2 px-5 rounded-full hover:bg-gray-800"> Enhance Your Studies →</button>
         </Link>
         </div>
@@ -216,7 +216,7 @@ export default function LandingPage() {
             <div className="w-full md:w-1/3">
               <h2 className="text-4xl font-bold mb-6">What Our Users Say?</h2>
               <p className="mb-6">You will love us too just like our users so try us now</p>
-              <Link to = "/register">
+              <Link to = "/home">
               <button className="text-red-500 hover:text-red-600 font-medium flex items-center">
                 Try Now 
               
