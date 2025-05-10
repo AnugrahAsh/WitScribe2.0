@@ -15,18 +15,18 @@ export default function LandingPage() {
       <div className="space-y-8 bg-gray-100 p-6">
 
       <nav data-aos="fade-up" data-aos-anchor-placement="top-bottom" data-aos-easing="ease-in-out" data-aos-delay="300" className="flex items-center justify-center gap-4 md:gap-8 mt-2">
-        <Link className="bg-slate-200 rounded-full px-3 py-1 text-xs md:text-md lg:text-lg" to='/home'>Home</Link>
-        <Link className="bg-slate-200 rounded-full px-3 py-1 text-xs md:text-md lg:text-lg" to='/about'>About Us</Link>
-        <Link className="bg-slate-200 rounded-full px-3 py-1 text-xs md:text-md lg:text-lg" to='/contact'>Contact Us</Link>
-        <Link className="bg-slate-200 rounded-full px-3 py-1 text-xs md:text-md lg:text-lg" to='/faq'>FAQ</Link>
+        <Link className="bg-slate-200 rounded-full px-3 py-1 text-[11px] md:text-md lg:text-lg" to='/home'>Home</Link>
+        <Link className="bg-slate-200 rounded-full px-3 py-1 text-[11px] md:text-md lg:text-lg" to='/about'>About Us</Link>
+        <Link className="bg-slate-200 rounded-full px-3 py-1 text-[11px] md:text-md lg:text-lg" to='/contact'>Contact Us</Link>
+        <Link className="bg-slate-200 rounded-full px-3 py-1 text-[11px] md:text-md lg:text-lg" to='/faq'>FAQ</Link>
       </nav>
 
       {/* Hero Section */}
       <section className="text-center bg-gray-300 py-20 md:py-40 mb-4 rounded-xl shadow">
-        <h1 className="text-6xl font-bold mb-4 leading-22">Level Up Your Studies <br /> With WitScribe</h1>
-        <p className="text-gray-700 text-xl mb-6">Supercharge Your Studies with Us —<br />Embark on a Transformative Learning Journey Today!</p>
+        <h1 className="text-4xl  md:text-6xl font-bold mb-4 leading-18 md:leading-22">Level Up Your Studies <br /> With WitScribe</h1>
+        <p className="text-gray-700 text-md md:text-xl mb-6 p-2">Supercharge Your Studies with Us —<br />Embark on a Transformative Learning Journey Today!</p>
         <Link to = "/register">
-        <button className="bg-red-500 hover:bg-red-600 text-white font-semibold py-4 px-10 rounded-full shadow-md">Explore for free &rarr;</button>
+        <button className="bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-8 md:py-4 md:px-10 rounded-full shadow-md">Explore for free &rarr;</button>
       </Link>
       </section>
       </div>
@@ -46,7 +46,7 @@ export default function LandingPage() {
             with the help of Artificial Intelligence
           </p>
           <Link to = "/register">
-          <button className="bg-black text-white py-2 px-5 rounded-full hover:bg-gray-800"> Enhance Your Studies →</button>
+          <button className="bg-black text-white py-2 px-4.5 rounded-full hover:bg-gray-800"> Enhance Your Studies →</button>
         </Link>
         </div>
       </section>
