@@ -14,15 +14,15 @@ export default function LandingPage() {
     <div className="min-h-screen bg-gray-100">
       <div className="space-y-8 bg-gray-100 p-6">
 
-      <nav data-aos="fade-up" data-aos-anchor-placement="top-bottom" data-aos-easing="ease-in-out" data-aos-delay="300" className="flex items-center justify-center gap-8 mt-2">
-        <Link className="bg-slate-200 rounded-full px-3 py-1" to='/home'>Home</Link>
-        <Link className="bg-slate-200 rounded-full px-3 py-1" to='/about'>About Us</Link>
-        <Link className="bg-slate-200 rounded-full px-3 py-1" to='/contact'>Contact Us</Link>
-        <Link className="bg-slate-200 rounded-full px-3 py-1" to='/faq'>FAQ</Link>
+      <nav data-aos="fade-up" data-aos-anchor-placement="top-bottom" data-aos-easing="ease-in-out" data-aos-delay="300" className="flex items-center justify-center gap-4 md:gap-8 mt-2">
+        <Link className="bg-slate-200 rounded-full px-3 py-1 text-xs md:text-md lg:text-lg" to='/home'>Home</Link>
+        <Link className="bg-slate-200 rounded-full px-3 py-1 text-xs md:text-md lg:text-lg" to='/about'>About Us</Link>
+        <Link className="bg-slate-200 rounded-full px-3 py-1 text-xs md:text-md lg:text-lg" to='/contact'>Contact Us</Link>
+        <Link className="bg-slate-200 rounded-full px-3 py-1 text-xs md:text-md lg:text-lg" to='/faq'>FAQ</Link>
       </nav>
 
       {/* Hero Section */}
-      <section className="text-center bg-gray-300 py-40 mb-4 rounded-xl shadow">
+      <section className="text-center bg-gray-300 py-20 md:py-40 mb-4 rounded-xl shadow">
         <h1 className="text-6xl font-bold mb-4 leading-22">Level Up Your Studies <br /> With WitScribe</h1>
         <p className="text-gray-700 text-xl mb-6">Supercharge Your Studies with Us —<br />Embark on a Transformative Learning Journey Today!</p>
         <Link to = "/register">
@@ -65,12 +65,12 @@ export default function LandingPage() {
                 Yes it's true, you heard it right you just upload the link of the YouTube video click on generate quiz and poof! you have your own quiz generated especially for you
               </p>
             </div>
-            <div className="w-100 md:w-1/2 flex gap-4">
-              <div className="bg-gray-20 h-32 w-100">
+            <div className="w-90 md:w-1/2 flex gap-4">
+              <div className="bg-gray-20 h-32 w-[40%] md:w-100">
               <img src={quizzy} alt="How to use WebSocket?" className="rounded-lg shadow h-auto" />
 
               </div>
-              <div className="bg-gray-200 h-32 w-full">
+              <div className="bg-gray-200 h-32 w-[50%] md:w-full">
               <img src={leadery} alt="How to use WebSocket?" className="rounded-lg shadow" />
 
               </div>
