@@ -334,7 +334,8 @@ body{
 .feature-image {
   border-radius: 50%; /* Optional: Make the images circular */
   object-fit: cover;
-  height: 120px;
+      height: 120px;
+
 }
 
 .feature-image.small {
@@ -353,8 +354,8 @@ body{
 }
 
 .feature-image.xl {
-  width: 220px;
-  height: 220px;
+  width: 100px;
+  height: 100px;
 }
 
 /* Circle sizes with increasing scale */
@@ -374,8 +375,8 @@ body{
 }
 
 .red-circle.xl {
-  width: 200px;
-  height: 200px;
+  width: 100px;
+  height: 100px;
 }
 
 /* Decorative elements */
@@ -566,7 +567,7 @@ body{
   }
 }
 
-.offerings-section::after,
+/* .offerings-section::after,
 .mission-section::after,
 .journey-section::after,
 .team-section::after {
@@ -609,10 +610,10 @@ body{
     transparent
   );
   max-width: 1000px;
-}
+} */
 
 /* Update sections to have relative positioning and proper spacing */
-.offerings-section,
+/* .offerings-section,
 .mission-section,
 .journey-section,
 .team-section {
@@ -650,7 +651,7 @@ body{
   .team-section::before {
     width: 90%;
   }
-}
+} */
 
 .mission-section {
   opacity: 0;
@@ -683,12 +684,7 @@ body{
 .mission-header::after {
   content: "";
   position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 1200px;
-  height: 2px;
-  background: #000;
+ 
 }
 
 .mission-header h2 {
@@ -942,12 +938,6 @@ body{
 .journey-title::after {
   content: "";
   position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 1200px;
-  height: 2px;
-  background: #000;
 }
 
 .timeline {
@@ -967,6 +957,13 @@ body{
   background: #ddd;
   transform: translateX(-50%);
   z-index: 1;
+}
+
+@media (max-width: 768px) {
+  .timeline::before {
+    left: 6.5%;
+    transform: translateX(0);
+  }
 }
 
 .timeline-item {
@@ -1124,12 +1121,6 @@ body{
 .team-title::after {
   content: '';
   position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 80%;
-  height: 2px;
-  background: #333;
 }
 
 .team-title span {
