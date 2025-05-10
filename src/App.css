@@ -334,6 +334,7 @@ body{
 .feature-image {
   border-radius: 50%; /* Optional: Make the images circular */
   object-fit: cover;
+  height: 120px;
 }
 
 .feature-image.small {
