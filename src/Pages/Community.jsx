@@ -183,7 +183,7 @@ export default function Community() {
         </div>
       </nav>
 
-      <main className={`flex flex-1 p-4 ${darkMode ? 'bg-gray-900 text-white' : 'bg-white text-black'}`}>
+      <main className={`flex flex-1 p-4 py-10 ${darkMode ? 'bg-gray-900 text-white' : 'bg-white text-black'}`}>
         <div className="flex-1 max-w-3xl mx-auto">
           <h1 className="text-2xl font-bold mb-6">Community Questions</h1>
           <div className="space-y-4">
@@ -229,7 +229,7 @@ export default function Community() {
             )}
           </div>
         </div>
-        <aside className="hidden lg:block w-80 ml-4">
+        {/* <aside className="hidden lg:block w-80 ml-4">
           <div className={`border rounded-lg p-4 sticky top-4 ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
             <h3 className="font-bold mb-2">Popular Tags</h3>
             <div className="flex flex-wrap gap-2">
@@ -240,7 +240,7 @@ export default function Community() {
               <span className="px-2 py-1 text-sm bg-red-100 text-red-800 rounded">Frontend</span>
             </div>
           </div>
-        </aside>
+        </aside> */}
       </main>
       
       {/* Add Question Modal */}
