@@ -1,4 +1,3 @@
-// Community.jsx (Main community page listing questions)
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { db } from "../firebase";
@@ -25,6 +24,8 @@ export default function Community() {
   const [newQuestion, setNewQuestion] = useState({ title: "", description: "" });
   const [search, setSearch] = useState("");
   const [commentInput, setCommentInput] = useState({});
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showMobileSearch, setShowMobileSearch] = useState(false);
 
   // Fetch questions in real-time
   useEffect(() => {
@@ -40,6 +41,18 @@ export default function Community() {
     });
     return unsubscribe;
   }, [currentUser]);
+
+  // Reset mobile UI states when resizing to desktop
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setMobileMenuOpen(false);
+        setShowMobileSearch(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Add a new question
   const handleAddQuestion = async (e) => {
@@ -132,32 +145,120 @@ export default function Community() {
     (q.description && q.description.toLowerCase().includes(search.toLowerCase()))
   );
 
+  // Toggle mobile search
+  const toggleMobileSearch = () => {
+    setShowMobileSearch(!showMobileSearch);
+    setMobileMenuOpen(false);
+    if (!showMobileSearch) {
+      setTimeout(() => {
+        document.getElementById('mobile-search-input')?.focus();
+      }, 100);
+    }
+  };
+
   return (
     <div className={`flex flex-col min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
-      <nav className="bg-black text-white p-4">
-        <div className="max-w-7xl mx-auto flex items-center">
+      <nav className="bg-black text-white py-2 px-3 md:p-4 relative">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          {/* Logo */}
           <Link 
             to="/home" 
-            className="text-xl font-bold hover:text-gray-300 transition-colors"
+            className="font-bold hover:text-gray-300 transition-colors text-lg md:text-xl z-10"
           >
             WitScribe
           </Link>
-          <div className="flex-1 flex items-center justify-end gap-4">
-            <div className="max-w-md w-full">
-              <input
-                type="text"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                placeholder="Search for the topic and discussion"
-                className="w-full px-4 py-2 rounded-lg bg-white text-gray-900 placeholder-gray-500 border border-gray-200"
-              />
+          
+          {/* Desktop Search */}
+          <div className="hidden md:block md:w-64 lg:w-80 mx-4">
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search topics..."
+              className="w-full px-3 py-1 text-sm rounded-lg bg-white text-gray-900 placeholder-gray-500 border border-gray-200"
+            />
+          </div>
+
+          {/* Desktop Actions */}
+          <div className="hidden md:flex items-center gap-3">
+            <button 
+              className="text-xl hover:opacity-75 transition-opacity"
+              onClick={() => setIsModalOpen(true)}
+            >➕</button>
+            <div className="flex items-center">
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  className="sr-only peer" 
+                  checked={darkMode}
+                  onChange={() => setDarkMode(!darkMode)}
+                />
+                <div className="w-9 h-5 bg-gray-600 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all"></div>
+              </label>
             </div>
-            <div className="flex items-center gap-4">
-              <button 
-                className="text-xl hover:opacity-75 transition-opacity"
-                onClick={() => setIsModalOpen(true)}
-              >➕</button>
-              <div className="flex items-center">
+            <Link to="/profile" className="hover:opacity-80 transition-opacity">
+              <img
+                src="https://i.pravatar.cc/32"
+                alt="Profile"
+                className="w-8 h-8 rounded-full cursor-pointer"
+              />
+            </Link>
+          </div>
+
+          {/* Mobile Actions */}
+          <div className="flex items-center gap-2 md:hidden">
+            {!showMobileSearch && (
+              <>
+                <button onClick={toggleMobileSearch} className="p-1">
+                  🔍
+                </button>
+                <button onClick={() => setIsModalOpen(true)} className="p-1">
+                  ➕
+                </button>
+                <button 
+                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                  className="p-1"
+                >
+                  {mobileMenuOpen ? '✕' : '☰'}
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Mobile Search Bar - Compact version */}
+        {showMobileSearch && (
+          <div className="mt-2 flex items-center md:hidden">
+            <button 
+              onClick={toggleMobileSearch}
+              className="mr-2 text-sm"
+            >
+              ←
+            </button>
+            <input
+              id="mobile-search-input"
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search topics..."
+              className="flex-1 px-2 py-1 text-sm rounded-lg bg-white text-gray-900 border border-gray-200"
+              autoFocus
+            />
+            <button 
+              onClick={toggleMobileSearch}
+              className="ml-2 text-sm"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
+        {/* Mobile Menu Dropdown */}
+        {mobileMenuOpen && (
+          <div className="absolute top-full left-0 right-0 bg-black z-20 border-t border-gray-800 md:hidden">
+            <div className="p-3 space-y-3">
+              <div className="flex items-center justify-between py-2">
+                <span className="text-sm">Dark Mode</span>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input 
                     type="checkbox" 
@@ -165,22 +266,24 @@ export default function Community() {
                     checked={darkMode}
                     onChange={() => setDarkMode(!darkMode)}
                   />
-                  <div className="w-9 h-5 bg-gray-600 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all"></div>
+                  <div className="w-8 h-4 bg-gray-600 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all"></div>
                 </label>
               </div>
               <Link 
                 to="/profile" 
-                className="hover:opacity-80 transition-opacity"
+                className="flex items-center gap-2 py-2 hover:bg-gray-800 rounded"
+                onClick={() => setMobileMenuOpen(false)}
               >
                 <img
                   src="https://i.pravatar.cc/32"
                   alt="Profile"
-                  className="w-8 h-8 rounded-full cursor-pointer"
+                  className="w-6 h-6 rounded-full"
                 />
+                <span className="text-sm">Profile</span>
               </Link>
             </div>
           </div>
-        </div>
+        )}
       </nav>
 
       <main className={`flex flex-1 p-4 py-10 ${darkMode ? 'bg-gray-900 text-white' : 'bg-white text-black'}`}>
@@ -229,18 +332,6 @@ export default function Community() {
             )}
           </div>
         </div>
-        {/* <aside className="hidden lg:block w-80 ml-4">
-          <div className={`border rounded-lg p-4 sticky top-4 ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-            <h3 className="font-bold mb-2">Popular Tags</h3>
-            <div className="flex flex-wrap gap-2">
-              <span className="px-2 py-1 text-sm bg-blue-100 text-blue-800 rounded">React</span>
-              <span className="px-2 py-1 text-sm bg-green-100 text-green-800 rounded">JavaScript</span>
-              <span className="px-2 py-1 text-sm bg-purple-100 text-purple-800 rounded">WebSockets</span>
-              <span className="px-2 py-1 text-sm bg-yellow-100 text-yellow-800 rounded">API</span>
-              <span className="px-2 py-1 text-sm bg-red-100 text-red-800 rounded">Frontend</span>
-            </div>
-          </div>
-        </aside> */}
       </main>
       
       {/* Add Question Modal */}
