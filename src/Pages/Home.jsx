@@ -12,7 +12,7 @@ const Home = () => {
   const navigate = useNavigate()
 
   const API_KEY =
-    "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6IjEifQ.eyJpc3MiOiJuYWRsZXMiLCJpYXQiOiIxNzQ1Mjg4MzYyIiwicHVycG9zZSI6ImFwaV9hdXRoZW50aWNhdGlvbiIsInN1YiI6Ijc4OTc3Y2U3MjZmMzRiZDFhZTcwOTJlMTcyOGY1ODIxIn0.-ikSG1v9D6csDJaNWLpz7ct4dRdyHQTxN1CffJKegTQ"
+    "sd_a4bb48c811685b2bc4911cfc5434188e"
   const GEMINI_API_KEY = "AIzaSyA6j1QQ77ETh5v7ImpSCWT6ZCWVDlGnOSg"
 
   const getYouTubeVideoId = (url) => {
