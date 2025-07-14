@@ -82,7 +82,7 @@ const Home = () => {
         {
           parts: [
             {
-              text: `Create comprehensive, well-structured notes from the following YouTube video transcript. 
+              text: `@youtube Create comprehensive, well-structured notes from the following YouTube video transcript. 
           Break it down into sections with clear headings, don't use any puctuation marks , also remove all the special symbols used, don't use asterisk (*) symbol in the lines and summarize main ideas, make sure it relates to the topic of the video and should also include examples that simplifies learning.
           Format the response in markdown.
           TRANSCRIPT:
