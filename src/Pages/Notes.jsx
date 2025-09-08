@@ -245,19 +245,17 @@ function AccordionQuestion({ question }) {
     setError(null)
 
     try {
-      // Using a more reliable approach to access the API key
-      let apiKey = "AIzaSyA6j1QQ77ETh5v7ImpSCWT6ZCWVDlGnOSg"
-
-      // Try to get the API key from environment variables
-      try {
-        apiKey = import.meta.env.VITE_GEMINI_API_KEY
-      } catch {
-        console.warn("Couldn't access import.meta.env, using fallback key")
+      // Prefer API key from Vite env. Falls back to undefined which we handle below.
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY
+      if (!apiKey) {
+        console.warn("VITE_GEMINI_API_KEY is not set. Gemini requests will likely fail.")
       }
 
-      // If no API key from env, use fallback (not recommended for production)
+      // If there's no API key, bail out early with a useful error message
       if (!apiKey) {
-        apiKey = "AIzaSyA6j1QQ77ETh5v7ImpSCWT6ZCWVDlGnOSg"
+        setError("VITE_GEMINI_API_KEY is not configured. Please set it in the .env file and restart the dev server.")
+        setIsLoading(false)
+        return
       }
 
       // Add timeout to prevent hanging requests

@@ -5,7 +5,8 @@ import { useNavigate } from "react-router-dom"
 import quizIllustration from "../assets/quiz-illustration.webp"
 import Navbar from "../Components/Navbar"
 
-const GEMINI_API_KEY = "AIzaSyA6j1QQ77ETh5v7ImpSCWT6ZCWVDlGnOSg"
+// Read Gemini API key from Vite environment variables
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY
 
 export default function Quiz1() {
   const [quizTopic, setQuizTopic] = useState("")
@@ -17,6 +18,11 @@ export default function Quiz1() {
   const handleSearch = async (e) => {
     e.preventDefault()
     if (!quizTopic.trim()) return
+    // Ensure API key is available before starting
+    if (!GEMINI_API_KEY) {
+      alert("VITE_GEMINI_API_KEY is not configured. Please set it in your .env file and restart the dev server.")
+      return
+    }
 
     setLoading(true)
     try {

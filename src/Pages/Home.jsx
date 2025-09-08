@@ -13,7 +13,8 @@ const Home = () => {
 
   const API_KEY =
     "sd_a4bb48c811685b2bc4911cfc5434188e"
-  const GEMINI_API_KEY = "AIzaSyA6j1QQ77ETh5v7ImpSCWT6ZCWVDlGnOSg"
+  // Read Gemini API key from Vite env
+  const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY
 
   const getYouTubeVideoId = (url) => {
     const regexes = [
@@ -75,6 +76,10 @@ const Home = () => {
       transcript.length > 30000
         ? transcript.substring(0, 30000) + "... (transcript truncated due to length)"
         : transcript
+
+    if (!GEMINI_API_KEY) {
+      throw new Error("VITE_GEMINI_API_KEY is not configured. Please set it in the .env file and restart the dev server.")
+    }
 
     const apiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`
     const payload = {
