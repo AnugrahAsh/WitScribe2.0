@@ -18,7 +18,7 @@ const Navbar = ({ userPhoto }) => {
   const profileImg = userPhoto || UserImage;
 
   return (
-    <div className="navbar-container flex mt-8 relative">
+    <div className="navbar-container flex mt-8 relative mx-6">
       <div className="navbar flex flex-wrap gap-4 md:gap-44 m-auto bg-[#dcdcdc] justify-between md:justify-center rounded-2xl items-center mx-auto px-10 md:px-8 py-3 w-full max-w-2xl">
         <Link to="/landing">
           <div className="logo text-2xl font-bold">WitScribe</div>
@@ -98,7 +98,7 @@ const Navbar = ({ userPhoto }) => {
                   <img
                     src={profileImg}
                     alt="Profile"
-                    className="profile-pic rounded-full mr-2 h-8 w-8 object-cover"
+                    className="profile-pic rounded-full mr-2 h-4 w-4 object-contain"
                   />
                   <span>Profile</span>
                 </Link>

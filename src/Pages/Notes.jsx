@@ -3,139 +3,139 @@ import { useLocation, Link } from "react-router-dom"
 import ReactMarkdown from "react-markdown"
 import { useState, useEffect, useRef } from "react"
 
-import Navbar from "../components/Navbar" // Adjust import path as needed
+import Navbar from "../Components/Navbar" // Adjust import path as needed
 
-// Text-to-Speech component extracted outside of Notes component
+// Text-to-Speech component remains unchanged
 function TextToSpeechButton({ textToRead }) {
-  const [voices, setVoices] = useState([]);
-  const [selectedVoice, setSelectedVoice] = useState('');
-  const [isPaused, setIsPaused] = useState(false);
-  const [isSpeaking, setIsSpeaking] = useState(false);
-  const [showTtsControls, setShowTtsControls] = useState(false);
-  const [rate, setRate] = useState(1);
-  const [pitch, setPitch] = useState(1);
-  const [volume, setVolume] = useState(1);
+  const [voices, setVoices] = useState([])
+  const [selectedVoice, setSelectedVoice] = useState("")
+  const [isPaused, setIsPaused] = useState(false)
+  const [isSpeaking, setIsSpeaking] = useState(false)
+  const [showTtsControls, setShowTtsControls] = useState(false)
+  const [rate, setRate] = useState(1)
+  const [pitch, setPitch] = useState(1)
+  const [volume, setVolume] = useState(1)
 
   // References
-  const utteranceRef = useRef(null);
-  
+  const utteranceRef = useRef(null)
+
   useEffect(() => {
     // Initialize speech synthesis and load available voices
-    const synth = window.speechSynthesis;
-    
+    const synth = window.speechSynthesis
+
     const loadVoices = () => {
-      const availableVoices = synth.getVoices();
-      setVoices(availableVoices);
-      
+      const availableVoices = synth.getVoices()
+      setVoices(availableVoices)
+
       if (availableVoices.length > 0) {
-        setSelectedVoice(availableVoices[0].name);
+        setSelectedVoice(availableVoices[0].name)
       }
-    };
+    }
 
     if (synth.onvoiceschanged !== undefined) {
-      synth.onvoiceschanged = loadVoices;
+      synth.onvoiceschanged = loadVoices
     }
-    
-    loadVoices();
-    
+
+    loadVoices()
+
     return () => {
       if (synth.speaking) {
-        synth.cancel();
+        synth.cancel()
       }
-    };
-  }, []);
+    }
+  }, [])
 
   const handleVoiceChange = (e) => {
-    setSelectedVoice(e.target.value);
-  };
+    setSelectedVoice(e.target.value)
+  }
 
   const handleRateChange = (e) => {
-    setRate(parseFloat(e.target.value));
-  };
+    setRate(Number.parseFloat(e.target.value))
+  }
 
   const handlePitchChange = (e) => {
-    setPitch(parseFloat(e.target.value));
-  };
+    setPitch(Number.parseFloat(e.target.value))
+  }
 
   const handleVolumeChange = (e) => {
-    setVolume(parseFloat(e.target.value));
-  };
+    setVolume(Number.parseFloat(e.target.value))
+  }
 
   const speak = () => {
-    const synth = window.speechSynthesis;
-    
+    const synth = window.speechSynthesis
+
     if (synth.speaking) {
-      synth.cancel();
+      synth.cancel()
     }
 
     if (textToRead) {
-      const utterance = new SpeechSynthesisUtterance(textToRead);
-      utteranceRef.current = utterance;
-      
-      const voice = voices.find(v => v.name === selectedVoice);
+      const utterance = new SpeechSynthesisUtterance(textToRead)
+      utteranceRef.current = utterance
+
+      const voice = voices.find((v) => v.name === selectedVoice)
       if (voice) {
-        utterance.voice = voice;
+        utterance.voice = voice
       }
-      
-      utterance.rate = rate;
-      utterance.pitch = pitch;
-      utterance.volume = volume;
-      
+
+      utterance.rate = rate
+      utterance.pitch = pitch
+      utterance.volume = volume
+
       utterance.onstart = () => {
-        setIsSpeaking(true);
-      };
-      
+        setIsSpeaking(true)
+      }
+
       utterance.onend = () => {
-        setIsSpeaking(false);
-        setIsPaused(false);
-      };
-      
-      synth.speak(utterance);
+        setIsSpeaking(false)
+        setIsPaused(false)
+      }
+
+      synth.speak(utterance)
     }
-  };
+  }
 
   const togglePause = () => {
-    const synth = window.speechSynthesis;
-    
+    const synth = window.speechSynthesis
+
     if (synth.speaking) {
       if (isPaused) {
-        synth.resume();
-        setIsPaused(false);
+        synth.resume()
+        setIsPaused(false)
       } else {
-        synth.pause();
-        setIsPaused(true);
+        synth.pause()
+        setIsPaused(true)
       }
     }
-  };
+  }
 
   const stop = () => {
-    const synth = window.speechSynthesis;
-    synth.cancel();
-    setIsSpeaking(false);
-    setIsPaused(false);
-  };
+    const synth = window.speechSynthesis
+    synth.cancel()
+    setIsSpeaking(false)
+    setIsPaused(false)
+  }
 
   return (
     <>
-      <button 
-        onClick={() => setShowTtsControls(!showTtsControls)} 
-        className="bg-black hover:bg-gray-800 text-white py-2 px-4 rounded-lg flex-1 text-center"
+      <button
+        onClick={() => setShowTtsControls(!showTtsControls)}
+        className="bg-gradient-to-r from-gray-800 to-black hover:from-black hover:to-gray-800 text-white py-3 px-6 rounded-xl flex-1 text-center font-medium transition-all duration-300 shadow-lg hover:shadow-xl"
       >
-        Read Aloud
+        🔊 Read Aloud
       </button>
-      
+
       {showTtsControls && (
-        <div className="mt-4 p-4 bg-white rounded-lg shadow-md">
-          <h2 className="text-xl font-bold mb-3">Text to Speech Controls</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div className="mt-6 p-6 bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-100/50">
+          <h2 className="text-xl font-bold mb-4 text-gray-900">Text to Speech Controls</h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
-              <label className="block text-gray-700 mb-2" htmlFor="voice">
+              <label className="block text-gray-700 mb-2 font-medium" htmlFor="voice">
                 Voice:
               </label>
               <select
                 id="voice"
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-red-500 focus:ring-4 focus:ring-red-500/10 transition-all bg-white"
                 value={selectedVoice}
                 onChange={handleVoiceChange}
               >
@@ -146,15 +146,15 @@ function TextToSpeechButton({ textToRead }) {
                 ))}
               </select>
             </div>
-            
+
             <div>
-              <label className="block text-gray-700 mb-2" htmlFor="rate">
+              <label className="block text-gray-700 mb-2 font-medium" htmlFor="rate">
                 Rate: {rate}
               </label>
               <input
                 id="rate"
                 type="range"
-                className="w-full"
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
                 min="0.5"
                 max="2"
                 step="0.1"
@@ -163,16 +163,16 @@ function TextToSpeechButton({ textToRead }) {
               />
             </div>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
-              <label className="block text-gray-700 mb-2" htmlFor="pitch">
+              <label className="block text-gray-700 mb-2 font-medium" htmlFor="pitch">
                 Pitch: {pitch}
               </label>
               <input
                 id="pitch"
                 type="range"
-                className="w-full"
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
                 min="0.5"
                 max="2"
                 step="0.1"
@@ -180,15 +180,15 @@ function TextToSpeechButton({ textToRead }) {
                 onChange={handlePitchChange}
               />
             </div>
-            
+
             <div>
-              <label className="block text-gray-700 mb-2" htmlFor="volume">
+              <label className="block text-gray-700 mb-2 font-medium" htmlFor="volume">
                 Volume: {volume}
               </label>
               <input
                 id="volume"
                 type="range"
-                className="w-full"
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
                 min="0"
                 max="1"
                 step="0.1"
@@ -197,30 +197,30 @@ function TextToSpeechButton({ textToRead }) {
               />
             </div>
           </div>
-          
-          <div className="flex flex-wrap gap-4">
+
+          <div className="flex flex-wrap gap-3">
             <button
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none"
+              className="px-6 py-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium shadow-lg"
               onClick={speak}
               disabled={isSpeaking && !isPaused}
             >
-              Speak
+              ▶️ Speak
             </button>
-            
+
             {isSpeaking && (
               <>
                 <button
-                  className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 focus:outline-none"
+                  className="px-6 py-3 bg-yellow-500 text-white rounded-xl hover:bg-yellow-600 transition-all font-medium shadow-lg"
                   onClick={togglePause}
                 >
-                  {isPaused ? 'Resume' : 'Pause'}
+                  {isPaused ? "▶️ Resume" : "⏸️ Pause"}
                 </button>
-                
+
                 <button
-                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none"
+                  className="px-6 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-all font-medium shadow-lg"
                   onClick={stop}
                 >
-                  Stop
+                  ⏹️ Stop
                 </button>
               </>
             )}
@@ -228,123 +228,137 @@ function TextToSpeechButton({ textToRead }) {
         </div>
       )}
     </>
-  );
+  )
 }
 
-
 function AccordionQuestion({ question }) {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [answer, setAnswer] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [isExpanded, setIsExpanded] = useState(false)
+  const [answer, setAnswer] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState(null)
 
   // Function to fetch answer from Gemini API with proper error handling
   const fetchGeminiAnswer = async () => {
-    if (answer) return; // Don't fetch if we already have an answer
-    
-    setIsLoading(true);
-    setError(null);
-    
+    if (answer) return // Don't fetch if we already have an answer
+
+    setIsLoading(true)
+    setError(null)
+
     try {
       // Using a more reliable approach to access the API key
-      let apiKey = 'AIzaSyA6j1QQ77ETh5v7ImpSCWT6ZCWVDlGnOSg';
-      
+      let apiKey = "AIzaSyB4Sq0TybI3sfwlR_Vze4IljxdgX4rb80U"
+
       // Try to get the API key from environment variables
       try {
-        apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+        apiKey = import.meta.env.VITE_GEMINI_API_KEY
       } catch {
-        console.warn("Couldn't access import.meta.env, using fallback key");
+        console.warn("Couldn't access import.meta.env, using fallback key")
       }
-      
+
       // If no API key from env, use fallback (not recommended for production)
       if (!apiKey) {
-        apiKey = 'AIzaSyA6j1QQ77ETh5v7ImpSCWT6ZCWVDlGnOSg';
+        apiKey = "AIzaSyB4Sq0TybI3sfwlR_Vze4IljxdgX4rb80U"
       }
-      
-      // Add timeout to prevent hanging requests
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-      
-      const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-goog-api-key": apiKey
-        },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: `Please provide a clear and concise answer to this question: ${question}`
-            }]
-          }],
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 1024
-          }
-        }),
-        signal: controller.signal
-      });
-      
-      clearTimeout(timeoutId);
-      
-      if (!response.ok) {
-        const errorData = await response.text();
-        console.error("API Error Response:", errorData);
-        throw new Error(`API Error: ${response.status} - ${response.statusText}`);
 
+      // Add timeout to prevent hanging requests
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+
+      const response = await fetch(
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-goog-api-key": apiKey,
+          },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [
+                  {
+                    text: `Please provide a clear and not too long answer to this question: ${question}`,
+                  },
+                ],
+              },
+            ],
+            generationConfig: {
+              temperature: 0.7,
+              maxOutputTokens: 1024,
+            },
+          }),
+          signal: controller.signal,
+        },
+      )
+
+      clearTimeout(timeoutId)
+
+      if (!response.ok) {
+        const errorData = await response.text()
+        console.error("API Error Response:", errorData)
+        throw new Error(`API Error: ${response.status} - ${response.statusText}`)
       }
-      
-      const data = await response.json();
-      
+
+      const data = await response.json()
+
       // Extract the answer from the response with better error handling
-      if (data.candidates && data.candidates.length > 0 && 
-          data.candidates[0].content && 
-          data.candidates[0].content.parts && 
-          data.candidates[0].content.parts.length > 0) {
-        setAnswer(data.candidates[0].content.parts[0].text);
+      if (
+        data.candidates &&
+        data.candidates.length > 0 &&
+        data.candidates[0].content &&
+        data.candidates[0].content.parts &&
+        data.candidates[0].content.parts.length > 0
+      ) {
+        setAnswer(data.candidates[0].content.parts[0].text)
       } else {
-        console.error("Unexpected API response structure:", data);
-        throw new Error("No valid answer found in API response");
+        console.error("Unexpected API response structure:", data)
+        throw new Error("No valid answer found in API response")
       }
     } catch (err) {
-      console.error("Error fetching answer from Gemini:", err);
+      console.error("Error fetching answer from Gemini:", err)
       if (err.name === "AbortError") {
-        setError("Request timed out. Please try again.");
+        setError("Request timed out. Please try again.")
       } else {
-        setError("Failed to get answer. Please try again later. " + err.message);
+        setError("Failed to get answer. Please try again later. " + err.message)
       }
-      
+
       // Provide a fallback answer when the API fails
-      setAnswer("I'm unable to generate an answer from the Gemini API right now. Here's a general response:\n\n" +
-                "This would typically contain an answer to your question about the video content. " +
-                "Please try again later when our AI service is available.");
+      setAnswer(
+        "I'm unable to generate an answer from the Gemini API right now. Here's a general response:\n\n" +
+          "This would typically contain an answer to your question about the video content. " +
+          "Please try again later when our AI service is available.",
+      )
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   // Toggle accordion and fetch answer if needed
   const toggleAccordion = () => {
-    const newExpandedState = !isExpanded;
-    setIsExpanded(newExpandedState);
-    
+    const newExpandedState = !isExpanded
+    setIsExpanded(newExpandedState)
+
     if (newExpandedState && !answer && !isLoading) {
-      fetchGeminiAnswer();
+      fetchGeminiAnswer()
     }
-  };
+  }
 
   return (
-    <div className="mt-6 bg-gray-200 rounded-lg overflow-hidden">
+    <div className="mt-6 bg-white/90 backdrop-blur-sm rounded-2xl overflow-hidden shadow-lg border border-gray-100/50">
       {/* Accordion Header */}
-      <div 
-        className="p-4 flex justify-between items-center cursor-pointer"
+      <div
+        className="p-6 flex justify-between items-center cursor-pointer hover:bg-gray-50/50 transition-colors"
         onClick={toggleAccordion}
       >
-        <div className="font-medium">{question}</div>
-        <div className={`w-8 h-8 bg-red-100 rounded-full flex items-center justify-center transform transition-transform ${isExpanded ? 'rotate-90' : ''}`}>
+        <div className="font-semibold text-gray-900 text-lg">{question}</div>
+        <div
+          className={`w-10 h-10 bg-red-100 rounded-full flex items-center justify-center transform transition-all duration-300 hover:bg-red-200 ${
+            isExpanded ? "rotate-90 bg-red-500" : ""
+          }`}
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5 text-red-500"
+            className={`h-5 w-5 transition-colors ${isExpanded ? "text-white" : "text-red-500"}`}
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -353,103 +367,253 @@ function AccordionQuestion({ question }) {
           </svg>
         </div>
       </div>
-      
+
       {/* Accordion Content */}
       {isExpanded && (
-        <div className="px-4 pb-4">
+        <div className="px-6 pb-6 border-t border-gray-100">
           {isLoading ? (
-            <div className="flex items-center justify-center py-6">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-red-500"></div>
-              <span className="ml-2">Getting answer from Gemini...</span>
+            <div className="flex items-center justify-center py-8">
+              <div className="w-8 h-8 border-4 border-red-500/30 border-t-red-500 rounded-full animate-spin"></div>
+              <span className="ml-3 text-gray-600 font-medium">Getting answer from Gemini...</span>
             </div>
           ) : error ? (
-            <div className="text-red-500 py-2">{error}</div>
+            <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl mt-4">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">⚠️</span>
+                <p className="font-medium">{error}</p>
+              </div>
+            </div>
           ) : (
-            <div className="prose max-w-none">
-              <ReactMarkdown>{answer}</ReactMarkdown>
+            <div className="prose max-w-none mt-4">
+              <div className="bg-gray-50 rounded-xl p-4">
+                <ReactMarkdown className="text-gray-800">{answer}</ReactMarkdown>
+              </div>
             </div>
           )}
         </div>
       )}
     </div>
-  );
+  )
 }
 
 const Notes = () => {
   const location = useLocation()
   const { transcript, notes, videoId } = location.state || {}
   const [parsedTranscript, setParsedTranscript] = useState([])
-  const [parsedNotes, setParsedNotes] = useState([])
+  const [formattedNotes, setFormattedNotes] = useState([])
   const [showFullTranscript, setShowFullTranscript] = useState(false)
-  const [questions, setQuestions] = useState([
-  ]);
+  const [questions, setQuestions] = useState([])
+  const [isMobile, setIsMobile] = useState(false)
+  const [activeTab, setActiveTab] = useState("notes") // 'notes' or 'questions'
+
+  // Check if on mobile device
+  useEffect(() => {
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+
+    checkIfMobile()
+    window.addEventListener("resize", checkIfMobile)
+
+    return () => {
+      window.removeEventListener("resize", checkIfMobile)
+    }
+  }, [])
 
   useEffect(() => {
     // Parse transcript into timestamped lines
     if (transcript) {
       const lines = transcript.split("\n").filter((line) => line.trim() !== "")
-      // Only show first 13 lines initially (matching the design)
       setParsedTranscript(lines)
     }
-    
-    // Parse notes into sections
+
+    // Parse and format notes with improved logic
     if (notes) {
-      // Simple parsing logic - this can be enhanced based on your notes structure
-      const sections = []
-      let currentSection = null
-
-      const lines = notes.split("\n")
-
-      lines.forEach((line) => {
-        // Check if line is a heading (starts with #)
-        if (line.startsWith("# ")) {
-          if (currentSection) {
-            sections.push(currentSection)
-          }
-          currentSection = {
-            id: sections.length + 1,
-            title: line.replace("# ", ""),
-            points: [],
-          }
-        } else if (line.startsWith("## ")) {
-          if (currentSection) {
-            sections.push(currentSection)
-          }
-          currentSection = {
-            id: sections.length + 1,
-            title: line.replace("## ", ""),
-            points: [],
-          }
-        } else if (line.startsWith("- ") && currentSection) {
-          currentSection.points.push(line.replace("- ", ""))
-        } else if (line.trim() !== "" && currentSection) {
-          // Add non-empty lines that aren't bullet points as regular text
-          currentSection.points.push(line)
-        }
-      })
-
-      if (currentSection) {
-        sections.push(currentSection)
-      }
-
-      setParsedNotes(sections)
+      const formattedContent = formatNotes(notes)
+      setFormattedNotes(formattedContent)
     }
   }, [transcript, notes])
 
-  if (!transcript || !notes) {
+  // Improved notes formatting function
+  const formatNotes = (rawNotes) => {
+    if (!rawNotes) return []
+
+    // Better section detection - handles headings and subheadings
+    const sections = []
+    let currentSection = null
+    let currentSubsection = null
+
+    const lines = rawNotes.split("\n")
+    let inCodeBlock = false
+
+    lines.forEach((line) => {
+      // Toggle code block state
+      if (line.trim().startsWith("```")) {
+        inCodeBlock = !inCodeBlock
+
+        // Add the code block marker to the current section/subsection
+        if (currentSubsection) {
+          currentSubsection.content.push(line)
+        } else if (currentSection) {
+          currentSection.content.push(line)
+        } else {
+          // Create default section if needed
+          currentSection = {
+            id: 1,
+            title: "Notes",
+            type: "section",
+            content: [line],
+            subsections: [],
+          }
+          sections.push(currentSection)
+        }
+        return
+      }
+
+      // Don't process headings inside code blocks
+      if (inCodeBlock) {
+        if (currentSubsection) {
+          currentSubsection.content.push(line)
+        } else if (currentSection) {
+          currentSection.content.push(line)
+        }
+        return
+      }
+
+      // Process headings and content
+      if (line.startsWith("# ")) {
+        // Main heading - create new section
+        if (currentSection) {
+          sections.push(currentSection)
+        }
+
+        currentSection = {
+          id: sections.length + 1,
+          title: line.replace(/^# /, "").trim(),
+          type: "section",
+          content: [],
+          subsections: [],
+        }
+        currentSubsection = null
+      } else if (line.startsWith("## ")) {
+        // Subheading - create new subsection
+        if (!currentSection) {
+          // Create default section if none exists
+          currentSection = {
+            id: sections.length + 1,
+            title: "Notes",
+            type: "section",
+            content: [],
+            subsections: [],
+          }
+          sections.push(currentSection)
+        }
+
+        currentSubsection = {
+          id: `${currentSection.id}.${currentSection.subsections.length + 1}`,
+          title: line.replace(/^## /, "").trim(),
+          type: "subsection",
+          content: [],
+        }
+
+        currentSection.subsections.push(currentSubsection)
+      } else if (line.trim() !== "") {
+        // Regular content
+        if (currentSubsection) {
+          currentSubsection.content.push(line)
+        } else if (currentSection) {
+          currentSection.content.push(line)
+        } else {
+          // Create default section if no section exists yet
+          currentSection = {
+            id: sections.length + 1,
+            title: "Notes",
+            type: "section",
+            content: [line],
+            subsections: [],
+          }
+          sections.push(currentSection)
+        }
+      }
+    })
+
+    // Add the last section if it exists
+    if (currentSection && !sections.includes(currentSection)) {
+      sections.push(currentSection)
+    }
+
+    return sections
+  }
+
+  // Function to render formatted notes content
+  const renderNotesContent = (content) => {
+    if (!content || content.length === 0) return null
+
+    // Group content by list items and paragraphs
+    const formattedContent = []
+    let currentList = []
+
+    content.forEach((line, index) => {
+      // Detect list items
+      if (line.trim().match(/^(-|\*|\d+\.)\s/)) {
+        // Add to current list
+        currentList.push(line.trim().replace(/^(-|\*|\d+\.)\s/, ""))
+      } else {
+        // If we were building a list and now hit non-list content
+        if (currentList.length > 0) {
+          formattedContent.push({
+            type: "list",
+            items: [...currentList],
+          })
+          currentList = []
+        }
+
+        // Add paragraph content
+        if (line.trim()) {
+          formattedContent.push({
+            type: "paragraph",
+            content: line,
+          })
+        }
+      }
+    })
+
+    // Add any remaining list items
+    if (currentList.length > 0) {
+      formattedContent.push({
+        type: "list",
+        items: [...currentList],
+      })
+    }
+
     return (
-      <div className="max-w-4xl mx-auto mt-10 p-4">
-        <p>No data available. Please go back and try again.</p>
-        <Link to="/" className="text-blue-500 hover:underline">
-          Back to Home
-        </Link>
-      </div>
+      <>
+        {formattedContent.map((item, idx) => {
+          if (item.type === "list") {
+            return (
+              <ul key={idx} className="list-disc pl-6 space-y-2 my-4">
+                {item.items.map((listItem, i) => (
+                  <li key={i} className="text-gray-700 leading-relaxed">
+                    {listItem}
+                  </li>
+                ))}
+              </ul>
+            )
+          } else {
+            return (
+              <p key={idx} className="my-3 text-gray-700 leading-relaxed">
+                {item.content}
+              </p>
+            )
+          }
+        })}
+      </>
     )
   }
 
   // Format transcript line with timestamp if available
   const formatTranscriptLine = (line) => {
-    // Try to extract timestamp pattern like "00:00:00.000"
+    // Try to extract timestamp pattern like "00:00:00.000" or "00:00"
     const timeMatch = line.match(/(\d{2}:\d{2}:\d{2}|\d{2}:\d{2})/)
     if (timeMatch) {
       const time = timeMatch[0]
@@ -462,170 +626,384 @@ const Notes = () => {
   // Get a limited number of transcript lines for display
   const displayTranscriptLines = showFullTranscript ? parsedTranscript : parsedTranscript.slice(0, 13)
 
+  if (!transcript || !notes) {
+    return (
+      <div className="min-h-screen bg-transparent flex items-center justify-center">
+        <div className="text-center p-8">
+          <div className="text-6xl mb-4">📝</div>
+          <p className="text-xl text-gray-600 mb-6">No data available. Please go back and try again.</p>
+          <Link
+            to="/"
+            className="inline-block px-6 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors font-medium"
+          >
+            Back to Home
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-transparent">
       <Navbar />
 
       {/* Main Content */}
-      <div className="max-w-6xl mx-auto mt-14 flex flex-col md:flex-row gap-6 px-4">
-        {/* Left Column - Video and Transcript */}
-        <div className="md:w-1/3">
-          {/* Video Player */}
-          <div className="relative bg-black rounded-lg overflow-hidden">
-            {videoId ? (
-              <iframe
-                src={`https://www.youtube.com/embed/${videoId}`}
-                title="YouTube video player"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                className="w-full aspect-video"
-              ></iframe>
-            ) : (
-              <div className="w-full aspect-video bg-gray-800 flex items-center justify-center">
-                <div className="text-white">Video Unavailable</div>
-              </div>
-            )}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="w-16 h-16 rounded-full bg-red-600 flex items-center justify-center">
-                <div className="w-0 h-0 border-t-8 border-b-8 border-l-12 border-transparent border-l-white ml-1"></div>
-              </div>
-            </div>
-          </div>
-
-          {/* Transcript Section */}
-          <div className="mt-4">
-            <div className="flex items-center mb-2">
-              <h3 className="font-bold">Transcript</h3>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4 ml-2"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </div>
-            <ul className="list-disc pl-5 space-y-1">
-              {displayTranscriptLines.map((line, index) => {
-                const { time, text } = formatTranscriptLine(line)
-                return (
-                  <li key={index} className="text-sm">
-                    {time && <span className="font-mono">{time}</span>}
-                    <span className="ml-1">{text}</span>
-                  </li>
-                )
-              })}
-            </ul>
+      <div className="max-w-7xl mx-auto pt-24 pb-16 px-6">
+        {/* Mobile Navigation Tabs */}
+        {isMobile && (
+          <div className="flex bg-white/80 backdrop-blur-sm rounded-2xl p-2 mb-6 shadow-lg border border-gray-100/50">
             <button
-              className="mt-4 flex items-center text-gray-700"
-              onClick={() => setShowFullTranscript(!showFullTranscript)}
+              className={`flex-1 py-3 px-4 font-semibold rounded-xl transition-all duration-300 ${
+                activeTab === "notes"
+                  ? "text-white bg-red-500 shadow-lg"
+                  : "text-gray-600 hover:text-red-500 hover:bg-red-50"
+              }`}
+              onClick={() => setActiveTab("notes")}
             >
-              {showFullTranscript ? "Show Less" : "Read More"}
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4 ml-1"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
+              📝 Notes
+            </button>
+            <button
+              className={`flex-1 py-3 px-4 font-semibold rounded-xl transition-all duration-300 ${
+                activeTab === "questions"
+                  ? "text-white bg-red-500 shadow-lg"
+                  : "text-gray-600 hover:text-red-500 hover:bg-red-50"
+              }`}
+              onClick={() => setActiveTab("questions")}
+            >
+              🤖 Ask AI
             </button>
           </div>
+        )}
 
-          {/* Quiz Section */}
-          <div className="mt-8 bg-white p-6 rounded-lg">
-            <Link to={"/quiz"}>
-              <h2 className="text-2xl font-bold">
-                <span className="text-black">Play</span> <span className="text-gray-300">Quiz</span>
-              </h2>
-            </Link>
-          </div>
-        </div>
-
-        {/* Right Column - Notes */}
-        <div className="md:w-2/3 bg-gray-300 rounded-lg p-4">
-          {/* Structured Notes */}
-          {parsedNotes.length > 0 ? (
-            parsedNotes.map((section) => (
-              <div key={section.id} className="mb-6">
-                <h3 className="font-bold mb-2">
-                  {section.id}. {section.title}
-                </h3>
-                <ul className="list-disc pl-5 space-y-2">
-                  {section.points.map((point, index) => (
-                    <li key={index}>{point}</li>
-                  ))}
-                </ul>
-              </div>
-            ))
-          ) : (
-            <div className="prose max-w-none">
-              <ReactMarkdown>{notes}</ReactMarkdown>
+        <div className="flex flex-col lg:flex-row gap-8 w-full">
+          {/* Left Column - Video and Transcript */}
+          <div className="lg:w-1/3 w-full space-y-6">
+            {/* Video Player */}
+            <div className="relative bg-black rounded-2xl overflow-hidden shadow-2xl">
+              {videoId ? (
+                <iframe
+                  src={`https://www.youtube.com/embed/${videoId}`}
+                  title="YouTube video player"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="w-full aspect-video"
+                ></iframe>
+              ) : (
+                <div className="w-full aspect-video bg-gray-800 flex items-center justify-center">
+                  <div className="text-white text-lg">Video Unavailable</div>
+                </div>
+              )}
             </div>
-          )}
 
-          {/* Action Buttons */}
-          <div className="flex space-x-4 mt-6">
-            <button
-              onClick={() => {
-                const element = document.createElement("a")
-                const file = new Blob([notes], { type: "text/markdown" })
-                element.href = URL.createObjectURL(file)
-                element.download = "youtube_notes.md"
-                document.body.appendChild(element)
-                element.click()
-                document.body.removeChild(element)
-              }}
-              className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg flex-1 text-center"
-            >
-              Download
-            </button>
-            
-            {/* Text-to-Speech Button Component */}
-            <TextToSpeechButton textToRead={notes} />
-          </div>
-
-          {/* AI-Powered Q&A Section */}
-          <div className="mt-8">
-            <h3 className="font-bold mb-4">Ask AI About This Content</h3>
-            
-            {/* Rendering accordion questions */}
-            {questions.map((question, index) => (
-              <AccordionQuestion 
-                key={index} 
-                question={question} 
-              />
-            ))}
-            
-            {/* Add custom question input */}
-            <div className="mt-6">
-              <div className="flex">
-                <input 
-                  type="text" 
-                  placeholder="Ask your own question..."
-                  className="flex-1 py-2 px-4 rounded-l-lg border-0 focus:outline-none focus:ring-2 focus:ring-red-500"
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter' && e.target.value.trim()) {
-                      setQuestions([...questions, e.target.value.trim()]);
-                      e.target.value = '';
-                    }
-                  }}
-                />
-                <button 
-                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-r-lg"
-                  onClick={(e) => {
-                    const input = e.target.previousSibling;
-                    if (input.value.trim()) {
-                      setQuestions([...questions, input.value.trim()]);
-                      input.value = '';
-                    }
-                  }}
+            {/* Transcript Section - Hidden on mobile */}
+            <div className="bg-white/90 backdrop-blur-sm p-6 rounded-2xl shadow-xl border border-gray-100/50 hidden lg:block">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-bold text-xl text-gray-900">📄 Transcript</h3>
+                <button
+                  className="flex items-center gap-2 text-sm text-gray-600 hover:text-red-500 transition-colors font-medium"
+                  onClick={() => setShowFullTranscript(!showFullTranscript)}
                 >
-                  Ask
+                  {showFullTranscript ? "Show Less" : "Show More"}
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className={`h-4 w-4 transform transition-transform ${showFullTranscript ? "rotate-180" : ""}`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
                 </button>
               </div>
+
+              <div className="max-h-80 overflow-y-auto pr-2 space-y-3">
+                {displayTranscriptLines.map((line, index) => {
+                  const { time, text } = formatTranscriptLine(line)
+                  return (
+                    <div
+                      key={index}
+                      className="p-3 bg-gray-50 rounded-xl border border-gray-100 hover:bg-gray-100 transition-colors"
+                    >
+                      {time && (
+                        <span className="font-mono text-xs text-red-500 bg-red-50 px-2 py-1 rounded-lg block mb-2">
+                          {time}
+                        </span>
+                      )}
+                      <span className="text-sm text-gray-800 leading-relaxed">{text}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Quiz Section - Hidden on mobile */}
+            <div className="bg-gradient-to-r from-red-500 to-red-600 p-6 rounded-2xl shadow-xl text-white hidden lg:block">
+              <Link to={"/quiz"} className="block group">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold mb-2 group-hover:text-red-100 transition-colors">
+                      🧠 Play Quiz
+                    </h2>
+                    <p className="text-red-100">Test your knowledge on this video content</p>
+                  </div>
+                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-6 w-6 text-white"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                </div>
+              </Link>
+            </div>
+          </div>
+
+          {/* Mobile Notes and Questions Section */}
+          <div className="lg:hidden w-full">
+            {/* Notes Tab Content */}
+            {activeTab === "notes" && (
+              <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-gray-100/50 mb-6 w-full">
+                <h2 className="text-3xl font-bold mb-6 text-gray-900 border-b border-gray-200 pb-4">📝 Video Notes</h2>
+
+                {/* Render formatted notes */}
+                {formattedNotes.length > 0 ? (
+                  formattedNotes.map((section) => (
+                    <div key={section.id} className="mb-8">
+                      <h3 className="text-2xl font-bold mb-4 text-gray-900 bg-red-50 p-4 rounded-xl">
+                        {section.id}. {section.title}
+                      </h3>
+
+                      {/* Section content */}
+                      <div className="mb-6 pl-4">{renderNotesContent(section.content)}</div>
+
+                      {/* Subsections */}
+                      {section.subsections.map((subsection) => (
+                        <div key={subsection.id} className="mb-6 ml-6">
+                          <h4 className="text-xl font-semibold mb-3 text-gray-800 bg-gray-50 p-3 rounded-xl">
+                            {subsection.id} {subsection.title}
+                          </h4>
+                          <div className="pl-4">{renderNotesContent(subsection.content)}</div>
+                        </div>
+                      ))}
+                    </div>
+                  ))
+                ) : (
+                  <div className="prose max-w-none">
+                    <ReactMarkdown>{notes}</ReactMarkdown>
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="flex flex-col sm:flex-row gap-4 mt-8">
+                  <button
+                    onClick={() => {
+                      const element = document.createElement("a")
+                      const file = new Blob([notes], { type: "text/markdown" })
+                      element.href = URL.createObjectURL(file)
+                      element.download = "youtube_notes.md"
+                      document.body.appendChild(element)
+                      element.click()
+                      document.body.removeChild(element)
+                    }}
+                    className="bg-red-500 hover:bg-red-600 text-white py-3 px-6 rounded-xl flex-1 text-center font-medium transition-all duration-300 shadow-lg hover:shadow-xl"
+                  >
+                    📥 Download Notes
+                  </button>
+
+                  {/* Text-to-Speech Button Component */}
+                  <TextToSpeechButton textToRead={notes} />
+                </div>
+              </div>
+            )}
+
+            {/* Questions Tab Content */}
+            {activeTab === "questions" && (
+              <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-gray-100/50 w-full">
+                <h2 className="text-3xl font-bold mb-6 text-gray-900 border-b border-gray-200 pb-4">
+                  🤖 Ask AI About This Content
+                </h2>
+
+                {/* Add custom question input */}
+                <div className="mb-8">
+                  <div className="flex bg-gray-50 rounded-2xl p-2">
+                    <input
+                      type="text"
+                      placeholder="Ask a question about the video..."
+                      className="flex-1 py-4 px-6 bg-transparent border-none focus:outline-none text-gray-900 placeholder-gray-500"
+                      onKeyPress={(e) => {
+                        if (e.key === "Enter" && e.target.value.trim()) {
+                          setQuestions([...questions, e.target.value.trim()])
+                          e.target.value = ""
+                        }
+                      }}
+                    />
+                    <button
+                      className="bg-red-500 hover:bg-red-600 text-white px-8 py-4 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl"
+                      onClick={(e) => {
+                        const input = e.target.previousSibling
+                        if (input.value.trim()) {
+                          setQuestions([...questions, input.value.trim()])
+                          input.value = ""
+                        }
+                      }}
+                    >
+                      Ask
+                    </button>
+                  </div>
+                </div>
+
+                {/* Rendering accordion questions */}
+                {questions.length > 0 ? (
+                  questions.map((question, index) => <AccordionQuestion key={index} question={question} />)
+                ) : (
+                  <div className="text-center py-12 text-gray-500">
+                    <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-10 w-10 text-gray-400"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                    </div>
+                    <p className="text-xl font-semibold mb-2">No questions asked yet</p>
+                    <p>Type a question above to get insights about the video content!</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Right Column - Notes and Q&A (Desktop only) */}
+          <div className="hidden lg:block lg:w-2/3 w-full space-y-8">
+            {/* Notes Section */}
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-gray-100/50 w-full">
+              <h2 className="text-3xl font-bold mb-6 text-gray-900 border-b border-gray-200 pb-4">📝 Video Notes</h2>
+
+              {/* Render formatted notes */}
+              {formattedNotes.length > 0 ? (
+                formattedNotes.map((section) => (
+                  <div key={section.id} className="mb-8">
+                    <h3 className="text-2xl font-bold mb-4 text-gray-900 bg-red-50 p-4 rounded-xl">
+                      {section.id}. {section.title}
+                    </h3>
+
+                    {/* Section content */}
+                    <div className="mb-6 pl-4">{renderNotesContent(section.content)}</div>
+
+                    {/* Subsections */}
+                    {section.subsections.map((subsection) => (
+                      <div key={subsection.id} className="mb-6 ml-6">
+                        <h4 className="text-xl font-semibold mb-3 text-gray-800 bg-gray-50 p-3 rounded-xl">
+                          {subsection.id} {subsection.title}
+                        </h4>
+                        <div className="pl-4">{renderNotesContent(subsection.content)}</div>
+                      </div>
+                    ))}
+                  </div>
+                ))
+              ) : (
+                <div className="prose max-w-none">
+                  <ReactMarkdown>{notes}</ReactMarkdown>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4 mt-8">
+                <button
+                  onClick={() => {
+                    const element = document.createElement("a")
+                    const file = new Blob([notes], { type: "text/markdown" })
+                    element.href = URL.createObjectURL(file)
+                    element.download = "youtube_notes.md"
+                    document.body.appendChild(element)
+                    element.click()
+                    document.body.removeChild(element)
+                  }}
+                  className="bg-red-500 hover:bg-red-600 text-white py-3 px-6 rounded-xl flex-1 text-center font-medium transition-all duration-300 shadow-lg hover:shadow-xl"
+                >
+                  📥 Download Notes
+                </button>
+
+                {/* Text-to-Speech Button Component */}
+                <TextToSpeechButton textToRead={notes} />
+              </div>
+            </div>
+
+            {/* AI-Powered Q&A Section */}
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-gray-100/50 w-full">
+              <h2 className="text-3xl font-bold mb-6 text-gray-900 border-b border-gray-200 pb-4">
+                🤖 Ask AI About This Content
+              </h2>
+
+              {/* Add custom question input */}
+              <div className="mb-8">
+                <div className="flex bg-gray-50 rounded-2xl p-2">
+                  <input
+                    type="text"
+                    placeholder="Ask a question about the video..."
+                    className="flex-1 py-4 px-6 bg-transparent border-none focus:outline-none text-gray-900 placeholder-gray-500"
+                    onKeyPress={(e) => {
+                      if (e.key === "Enter" && e.target.value.trim()) {
+                        setQuestions([...questions, e.target.value.trim()])
+                        e.target.value = ""
+                      }
+                    }}
+                  />
+                  <button
+                    className="bg-red-500 hover:bg-red-600 text-white px-8 py-4 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl"
+                    onClick={(e) => {
+                      const input = e.target.previousSibling
+                      if (input.value.trim()) {
+                        setQuestions([...questions, input.value.trim()])
+                        input.value = ""
+                      }
+                    }}
+                  >
+                    Ask
+                  </button>
+                </div>
+              </div>
+
+              {/* Rendering accordion questions */}
+              {questions.length > 0 ? (
+                questions.map((question, index) => <AccordionQuestion key={index} question={question} />)
+              ) : (
+                <div className="text-center py-12 text-gray-500">
+                  <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-10 w-10 text-gray-400"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  </div>
+                  <p className="text-xl font-semibold mb-2">No questions asked yet</p>
+                  <p>Type a question above to get insights about the video content!</p>
+                </div>
+              )}
             </div>
           </div>
         </div>

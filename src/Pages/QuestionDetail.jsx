@@ -1,239 +1,261 @@
-// QuestionDetail.jsx (Detail page for a single question)
-import React, { useState, useEffect } from "react";
-import { Link, useParams } from "react-router-dom";
+"use client"
 
-const initialAnswers = [
-  {
-    id: 1,
-    questionId: 1, // This links the answer to question #1
-    name: "Sohil Neema",
-    avatar: "https://i.pravatar.cc/100?u=sohil",
-    text: "WebSocket is a communication protocol that allows two-way, real-time communication between a client (like a browser) and a server.",
-    likes: 30,
-    comments: [],
-    isLiked: false,
-  },
-  {
-    id: 2,
-    questionId: 1,
-    name: "Neha Singh",
-    avatar: "https://i.pravatar.cc/100?u=neha",
-    text: 'WebSocket is a web technology that creates a persistent connection between the client and server.\nIt allows real-time, two-way communication without repeatedly refreshing the page.\nWebSocket is perfect for apps that need instant updates, like chats or live scores.\nIt starts with an HTTP handshake, then upgrades to a faster WebSocket connection.\nWebSocket helps reduce delay (latency) in sending and receiving data.',
-    likes: 325,
-    comments: [],
-    isLiked: false,
-  },
-  {
-    id: 3,
-    questionId: 1,
-    name: "Chetan Jain",
-    avatar: "https://i.pravatar.cc/100?u=chetan",
-    text: "WebSocket is a protocol that allows a continuous, two-way communication between a client (like a web browser) and a server. Unlike normal HTTP requests that open and close connections each time, WebSocket keeps the connection open so data can be sent and received instantly in real time.",
-    likes: 19,
-    comments: [],
-    isLiked: false,
-  },
-  {
-    id: 4,
-    questionId: 1,
-    name: "Suman Negi",
-    avatar: "https://i.pravatar.cc/100?u=suman",
-    text: "WebSocket maintains a single open connection that can send data in both directions.",
-    likes: 0,
-    comments: [],
-    isLiked: false,
-  },
-  // Add sample answers for other questions
-  {
-    id: 5,
-    questionId: 2, // This links the answer to question #2
-    name: "Arjun Kumar",
-    avatar: "https://i.pravatar.cc/100?u=arjun",
-    text: "Redux is a state management library that helps you manage application state in a predictable way. It's particularly useful for complex React applications with many components that need to share state.",
-    likes: 15,
-    comments: [],
-    isLiked: false,
-  }
-];
-
-const initialQuestions = [
-  {
-    id: 1,
-    author: "Kertii",
-    title: "What is WebSocket?",
-    likes: 23,
-    comments: [],
-    isLiked: false
-  },
-  {
-    id: 2,
-    author: "Anugrah",
-    title: "How to implement Redux in React?",
-    likes: 15,
-    comments: [],
-    isLiked: false
-  },
-  {
-    id: 3,
-    author: "Priya",
-    title: "Difference between useState and useReducer?",
-    likes: 8,
-    comments: [],
-    isLiked: false
-  }
-];
+import { useState, useEffect } from "react"
+import { Link, useParams, useNavigate } from "react-router-dom"
+import { db } from "../firebase"
+import {
+  collection,
+  doc,
+  getDocs,
+  query,
+  orderBy,
+  updateDoc,
+  deleteDoc,
+  arrayUnion,
+  arrayRemove,
+  increment,
+  onSnapshot,
+} from "firebase/firestore"
+import { useAuth } from "../context/AuthContext"
 
 export default function QuestionDetail() {
-  const { questionId } = useParams();
-  const [darkMode, setDarkMode] = useState(true);
-  const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState(null);
-  const [newComment, setNewComment] = useState("");
-  const [question, setQuestion] = useState(null);
-  const [answers, setAnswers] = useState([]);
-  const [newAnswer, setNewAnswer] = useState("");
+  const { questionId } = useParams()
+  const navigate = useNavigate()
+  const { currentUser } = useAuth()
+  const [darkMode, setDarkMode] = useState(true)
+  const [question, setQuestion] = useState(null)
+  const [newComment, setNewComment] = useState("")
+  const [loading, setLoading] = useState(true)
+  const [relatedQuestions, setRelatedQuestions] = useState([])
 
-  // Simulate fetching question and answers
+  // Fetch question with real-time updates
   useEffect(() => {
-    // Find the question by ID
-    const foundQuestion = initialQuestions.find(q => q.id === parseInt(questionId));
-    setQuestion(foundQuestion || null);
-    
-    // Find answers for this question
-    const questionAnswers = initialAnswers.filter(a => a.questionId === parseInt(questionId));
-    setAnswers(questionAnswers);
-  }, [questionId]);
-
-  const handleLike = (type, id) => {
-    if (type === 'question') {
-      setQuestion(prev => ({
-        ...prev,
-        likes: prev.isLiked ? prev.likes - 1 : prev.likes + 1,
-        isLiked: !prev.isLiked
-      }));
-    } else {
-      setAnswers(answers.map(a => {
-        if (a.id === id) {
-          return {
-            ...a,
-            likes: a.isLiked ? a.likes - 1 : a.likes + 1,
-            isLiked: !a.isLiked
-          };
+    const unsubscribe = onSnapshot(
+      doc(db, "questions", questionId),
+      (doc) => {
+        if (doc.exists()) {
+          const questionData = {
+            id: doc.id,
+            ...doc.data(),
+            isLiked: currentUser ? (doc.data().likedBy || []).includes(currentUser.uid) : false,
+          }
+          setQuestion(questionData)
+          setLoading(false)
+        } else {
+          console.log("No such question!")
+          navigate("/community")
         }
-        return a;
-      }));
-    }
-  };
+      },
+      (error) => {
+        console.error("Error fetching question:", error)
+        setLoading(false)
+      },
+    )
 
-  const handleComment = () => {
-    if (!newComment.trim()) return;
+    // Fetch related questions (not real-time)
+    const fetchRelatedQuestions = async () => {
+      try {
+        const q = query(collection(db, "questions"), orderBy("likes", "desc"))
 
-    if (selectedItem.type === 'question') {
-      setQuestion(prev => ({
-        ...prev,
-        comments: [...prev.comments, {
-          id: prev.comments.length + 1,
-          author: "User",
-          text: newComment,
-          timestamp: new Date().toISOString()
-        }]
-      }));
-    } else {
-      setAnswers(answers.map(a => {
-        if (a.id === selectedItem.id) {
-          return {
-            ...a,
-            comments: [...a.comments, {
-              id: a.comments.length + 1,
-              author: "User",
-              text: newComment,
-              timestamp: new Date().toISOString()
-            }]
-          };
-        }
-        return a;
-      }));
+        const querySnapshot = await getDocs(q)
+        const relatedData = querySnapshot.docs
+          .map((doc) => ({ id: doc.id, ...doc.data() }))
+          .filter((q) => q.id !== questionId)
+          .slice(0, 5)
+
+        setRelatedQuestions(relatedData)
+      } catch (error) {
+        console.error("Error fetching related questions:", error)
+      }
     }
 
-    setNewComment("");
-    setIsCommentModalOpen(false);
-  };
+    fetchRelatedQuestions()
 
-  const openCommentModal = (type, id) => {
-    setSelectedItem({ type, id });
-    setIsCommentModalOpen(true);
-  };
+    return () => unsubscribe()
+  }, [questionId, currentUser, navigate])
 
-  const handleAddAnswer = (e) => {
-    e.preventDefault();
-    if (newAnswer.trim()) {
-      const newAnswerObj = {
-        id: Math.max(...answers.map(a => a.id), 0) + 1,
-        questionId: parseInt(questionId),
-        name: "User",
-        avatar: "https://i.pravatar.cc/100?u=user",
-        text: newAnswer,
-        likes: 0,
-        comments: [],
-        isLiked: false
-      };
-      
-      setAnswers([...answers, newAnswerObj]);
-      setNewAnswer("");
+  const handleDeleteQuestion = async () => {
+    if (!currentUser) {
+      alert("Please sign in to delete this question")
+      return
     }
-  };
 
-  if (!question) {
+    // Check if current user is the author of the question
+    if (question.authorId !== currentUser.uid) {
+      alert("You can only delete your own questions")
+      return
+    }
+
+    if (!window.confirm("Are you sure you want to delete this question? This action cannot be undone.")) {
+      return
+    }
+
+    try {
+      // Delete the question document
+      await deleteDoc(doc(db, "questions", questionId))
+
+      // Navigate back to community page
+      navigate("/community")
+    } catch (error) {
+      console.error("Error deleting question:", error)
+      alert("Failed to delete question. Please try again.")
+    }
+  }
+
+  const handleLike = async () => {
+    if (!currentUser) {
+      alert("Please sign in to like")
+      return
+    }
+
+    const userId = currentUser.uid
+    const questionRef = doc(db, "questions", questionId)
+    const isLiked = question.likedBy?.includes(userId)
+
+    try {
+      await updateDoc(questionRef, {
+        likes: isLiked ? increment(-1) : increment(1),
+        likedBy: isLiked ? question.likedBy.filter((uid) => uid !== userId) : [...(question.likedBy || []), userId],
+      })
+    } catch (error) {
+      console.error("Error updating question like:", error)
+    }
+  }
+
+  const handleAddComment = async (e) => {
+    e.preventDefault()
+
+    if (!currentUser) {
+      alert("Please sign in to comment")
+      return
+    }
+
+    if (!newComment.trim()) return
+
+    try {
+      const commentData = {
+        id: `comment_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, // Generate a unique ID
+        author: currentUser.displayName || currentUser.email,
+        authorId: currentUser.uid,
+        text: newComment,
+        timestamp: new Date().toISOString(),
+      }
+
+      const questionRef = doc(db, "questions", questionId)
+
+      // Add comment to the question document
+      await updateDoc(questionRef, {
+        comments: arrayUnion(commentData),
+      })
+
+      setNewComment("")
+    } catch (error) {
+      console.error("Error adding comment:", error)
+      alert("Error adding comment. Please try again.")
+    }
+  }
+
+  const handleDeleteComment = async (commentIndex) => {
+    if (!currentUser) {
+      alert("Please sign in to delete comments")
+      return
+    }
+
+    const commentToDelete = question.comments[commentIndex]
+
+    // Check if user is authorized to delete this comment
+    if (commentToDelete.authorId !== currentUser.uid) {
+      alert("You can only delete your own comments")
+      return
+    }
+
+    if (!window.confirm("Are you sure you want to delete this comment?")) {
+      return
+    }
+
+    try {
+      // Remove the specific comment from Firestore using arrayRemove
+      const questionRef = doc(db, "questions", questionId)
+      await updateDoc(questionRef, {
+        comments: arrayRemove(commentToDelete),
+      })
+    } catch (error) {
+      console.error("Error deleting comment:", error)
+      alert("Failed to delete comment. Please try again.")
+    }
+  }
+
+  if (loading) {
     return (
-      <div className={`flex flex-col min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-white text-black'}`}>
-        <nav className="bg-black text-white p-4">
+      <div className={`flex flex-col min-h-screen ${darkMode ? "bg-gray-900 text-white" : "bg-gray-50 text-black"}`}>
+        <nav className="bg-gradient-to-r from-gray-900 via-black to-gray-900 text-white p-4 shadow-xl">
           <div className="max-w-7xl mx-auto flex items-center">
-            <Link 
-              to="/home" 
-              className="text-xl font-bold hover:text-gray-300 transition-colors"
-            >
+            <Link to="/home" className="text-xl font-bold hover:text-red-400 transition-colors">
               WitScribe
             </Link>
           </div>
         </nav>
         <div className="flex-1 flex items-center justify-center">
-          <p>Question not found</p>
+          <div className="text-center space-y-4">
+            <div className="w-16 h-16 border-4 border-red-500/30 border-t-red-500 rounded-full animate-spin mx-auto"></div>
+            <p className="text-gray-500 font-medium">Loading question...</p>
+          </div>
         </div>
       </div>
-    );
+    )
+  }
+
+  if (!question) {
+    return (
+      <div className={`flex flex-col min-h-screen ${darkMode ? "bg-gray-900 text-white" : "bg-gray-50 text-black"}`}>
+        <nav className="bg-gradient-to-r from-gray-900 via-black to-gray-900 text-white p-4 shadow-xl">
+          <div className="max-w-7xl mx-auto flex items-center">
+            <Link to="/home" className="text-xl font-bold hover:text-red-400 transition-colors">
+              WitScribe
+            </Link>
+          </div>
+        </nav>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center space-y-4">
+            <div className="text-6xl">❓</div>
+            <p className="text-xl font-semibold">Question not found</p>
+            <Link
+              to="/community"
+              className="inline-block px-6 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors"
+            >
+              Back to Community
+            </Link>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className={`flex flex-col min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
-      <nav className="bg-black text-white p-4">
+    <div className={`min-h-screen ${darkMode ? "bg-gray-900" : "bg-gray-50"}`}>
+      <nav className="bg-gradient-to-r from-gray-900 via-black to-gray-900 text-white p-4 shadow-xl sticky top-0 z-50">
         <div className="max-w-7xl mx-auto flex items-center">
-          <Link 
-            to="/home" 
-            className="text-xl font-bold hover:text-gray-300 transition-colors"
-          >
+          <Link to="/home" className="text-xl font-bold hover:text-red-400 transition-colors">
             WitScribe
           </Link>
           <div className="flex-1 flex items-center justify-end gap-4">
             <div className="flex items-center gap-4">
               <div className="flex items-center">
                 <label className="relative inline-flex items-center cursor-pointer">
-                  <input 
-                    type="checkbox" 
-                    className="sr-only peer" 
+                  <input
+                    type="checkbox"
+                    className="sr-only peer"
                     checked={darkMode}
                     onChange={() => setDarkMode(!darkMode)}
                   />
-                  <div className="w-9 h-5 bg-gray-600 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all"></div>
+                  <div className="w-11 h-6 bg-gray-600 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-500"></div>
                 </label>
               </div>
-              <Link 
-                to="/profile" 
-                className="hover:opacity-80 transition-opacity"
-              >
+              <Link to="/profile" className="hover:opacity-80 transition-opacity">
                 <img
-                  src="https://i.pravatar.cc/32"
+                  src={currentUser?.photoURL || "https://i.pravatar.cc/32"}
                   alt="Profile"
-                  className="w-8 h-8 rounded-full cursor-pointer"
+                  className="w-10 h-10 rounded-full cursor-pointer border-2 border-white/20 hover:border-red-400 transition-colors"
                 />
               </Link>
             </div>
@@ -241,183 +263,197 @@ export default function QuestionDetail() {
         </div>
       </nav>
 
-      <main className={`flex flex-1 p-4 ${darkMode ? 'bg-gray-900 text-white' : 'bg-white text-black'}`}>
-        <div className="flex-1 max-w-3xl mx-auto">
-          <div className="mb-4">
-            <Link to="/community" className="text-blue-500 hover:underline mb-4 inline-block">
-              ← Back to Community
+      <main className={`flex p-6 gap-8 ${darkMode ? "bg-gray-900 text-white" : "bg-gray-50 text-black"}`}>
+        <div className="flex-1 max-w-4xl mx-auto">
+          <div className="mb-6">
+            <Link
+              to="/community"
+              className="inline-flex items-center gap-2 text-red-500 hover:text-red-600 font-medium transition-colors group"
+            >
+              <span className="group-hover:-translate-x-1 transition-transform">←</span>
+              Back to Community
             </Link>
-            
-            <div className={`border rounded-lg p-4 mb-4 ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-              <div className="flex items-center gap-2 mb-2">
-                <span className="font-medium">{question.author}</span>
-              </div>
-              <h2 className="text-xl font-bold mb-2">{question.title}</h2>
-              {question.description && (
-                <p className="mb-3 text-gray-500">{question.description}</p>
-              )}
-              <div className="flex gap-4">
-                <button 
-                  onClick={() => handleLike('question', question.id)}
-                  className="flex items-center gap-1 text-red-500"
-                >
-                  {question.isLiked ? '❤' : '♡'} {question.likes}
-                </button>
-                <button 
-                  onClick={() => openCommentModal('question', question.id)}
-                  className="flex items-center gap-1"
-                >
-                  💬 {question.comments.length}
-                </button>
-              </div>
-              {question.comments.length > 0 && (
-                <div className="mt-4 space-y-2">
-                  {question.comments.map(comment => (
-                    <div key={comment.id} className={`p-2 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
-                      <div className="flex items-center gap-2 text-sm">
-                        <span className="font-medium">{comment.author}</span>
-                        <span className="text-gray-500">
-                          {new Date(comment.timestamp).toLocaleDateString()}
-                        </span>
-                      </div>
-                      <p className="mt-1">{comment.text}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+          </div>
 
-            <h3 className="text-red-500 text-lg font-bold mb-4">{answers.length} Answers:</h3>
-            <div className="space-y-4">
-              {answers.map((answer) => (
-                <div key={answer.id} className={`border rounded-lg p-4 ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <img
-                      src={answer.avatar}
-                      alt={answer.name}
-                      className="w-8 h-8 rounded-full"
-                    />
-                    <span className="font-medium">{answer.name}</span>
-                  </div>
-                  <p className="mb-3 whitespace-pre-line">{answer.text}</p>
-                  <div className="flex gap-4">
-                    <button 
-                      onClick={() => handleLike('answer', answer.id)}
-                      className="flex items-center gap-1 text-red-500"
-                    >
-                      {answer.isLiked ? '❤' : '♡'} {answer.likes}
-                    </button>
-                    <button 
-                      onClick={() => openCommentModal('answer', answer.id)}
-                      className="flex items-center gap-1"
-                    >
-                      💬 {answer.comments.length}
-                    </button>
-                  </div>
-                  {answer.comments.length > 0 && (
-                    <div className="mt-4 space-y-2">
-                      {answer.comments.map(comment => (
-                        <div key={comment.id} className={`p-2 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
-                          <div className="flex items-center gap-2 text-sm">
-                            <span className="font-medium">{comment.author}</span>
-                            <span className="text-gray-500">
-                              {new Date(comment.timestamp).toLocaleDateString()}
-                            </span>
-                          </div>
-                          <p className="mt-1">{comment.text}</p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            {/* Add Your Answer Section */}
-            <div className={`mt-8 border rounded-lg p-4 ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-              <h3 className="text-lg font-bold mb-3">Your Answer</h3>
-              <form onSubmit={handleAddAnswer}>
-                <textarea
-                  value={newAnswer}
-                  onChange={(e) => setNewAnswer(e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg bg-white text-gray-900 border border-gray-200"
-                  placeholder="Write your answer..."
-                  rows="5"
-                  required
+          {/* Question Card */}
+          <div
+            className={`rounded-2xl p-8 mb-8 shadow-xl border ${
+              darkMode
+                ? "border-gray-700/50 bg-gray-800/50 backdrop-blur-sm"
+                : "border-gray-200/50 bg-white/80 backdrop-blur-sm"
+            }`}
+          >
+            <div className="flex items-start justify-between mb-6">
+              <div className="flex items-center gap-4">
+                <img
+                  src={question.avatar || `https://i.pravatar.cc/100?u=${question.authorId || Math.random()}`}
+                  alt={question.author}
+                  className="w-12 h-12 rounded-full border-2 border-red-500/30"
                 />
-                <div className="mt-3 flex justify-end">
-                  <button
-                    type="submit"
-                    className="px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600"
-                    disabled={!newAnswer.trim()}
-                  >
-                    Post Your Answer
-                  </button>
+                <div>
+                  <h3 className="font-semibold text-lg">{question.author}</h3>
+                  <p className="text-sm text-gray-500">
+                    {question.createdAt?.toDate ? new Date(question.createdAt.toDate()).toLocaleDateString() : "Recent"}
+                  </p>
                 </div>
-              </form>
+              </div>
+              {currentUser && question.authorId === currentUser.uid && (
+                <button
+                  onClick={handleDeleteQuestion}
+                  className="px-4 py-2 text-red-500 hover:bg-red-500/10 rounded-xl transition-colors font-medium"
+                  title="Delete question"
+                >
+                  Delete
+                </button>
+              )}
             </div>
-          </div>
-        </div>
 
-        <aside className="hidden lg:block w-80 ml-4">
-          <div className={`border rounded-lg p-4 sticky top-4 ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-            <h3 className="font-bold mb-3">Related Questions</h3>
-            <ul className="space-y-2">
-              {initialQuestions.filter(q => q.id !== parseInt(questionId)).map(q => (
-                <li key={q.id}>
-                  <Link 
-                    to={`/community/question/${q.id}`}
-                    className="block hover:text-red-500 transition-colors"
-                  >
-                    {q.title}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </aside>
-      </main>
+            <h1 className="text-3xl font-bold mb-4 leading-tight">{question.title}</h1>
+            {question.description && (
+              <p className={`text-lg mb-6 leading-relaxed ${darkMode ? "text-gray-300" : "text-gray-600"}`}>
+                {question.description}
+              </p>
+            )}
 
-      {/* Comment Modal */}
-      {isCommentModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className={`w-full max-w-md rounded-lg p-6 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Add Comment</h2>
-              <button 
-                onClick={() => setIsCommentModalOpen(false)}
-                className="text-gray-500 hover:text-gray-700"
+            <div className="flex items-center gap-6">
+              <button
+                onClick={handleLike}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all hover:scale-105 ${
+                  question.isLiked
+                    ? "text-red-500 bg-red-500/10 hover:bg-red-500/20"
+                    : "text-gray-500 hover:text-red-500 hover:bg-red-500/10"
+                }`}
               >
-                ✕
+                {question.isLiked ? "❤️" : "🤍"} {question.likes || 0}
               </button>
+              <div className="flex items-center gap-2 text-gray-500">
+                <span>💬</span>
+                <span className="font-medium">{question.comments?.length || 0} comments</span>
+              </div>
             </div>
-            <div className="mb-4">
+          </div>
+
+          {/* Add Comment Section */}
+          <div
+            className={`rounded-2xl p-6 mb-8 shadow-lg border ${
+              darkMode
+                ? "border-gray-700/50 bg-gray-800/30 backdrop-blur-sm"
+                : "border-gray-200/50 bg-white/60 backdrop-blur-sm"
+            }`}
+          >
+            <h3 className="text-xl font-bold mb-4">Add Your Comment</h3>
+            <form onSubmit={handleAddComment} className="space-y-4">
               <textarea
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
-                className="w-full px-4 py-2 rounded-lg bg-white text-gray-900 border border-gray-200"
-                placeholder="Write your comment..."
+                placeholder="Share your thoughts..."
+                className={`w-full p-4 rounded-xl border-2 transition-all focus:ring-4 focus:ring-red-500/20 ${
+                  darkMode
+                    ? "bg-gray-800/50 border-gray-600 focus:border-red-500 text-white placeholder-gray-400"
+                    : "bg-white border-gray-300 focus:border-red-500 text-gray-900 placeholder-gray-500"
+                }`}
                 rows="4"
+                required
               />
-            </div>
-            <div className="flex justify-end gap-2">
               <button
-                onClick={() => setIsCommentModalOpen(false)}
-                className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100"
+                type="submit"
+                className="px-6 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium shadow-lg hover:shadow-xl"
+                disabled={!currentUser || !newComment.trim()}
               >
-                Cancel
+                {currentUser ? "Post Comment" : "Sign in to Comment"}
               </button>
-              <button
-                onClick={handleComment}
-                className="px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600"
-                disabled={!newComment.trim()}
-              >
-                Post Comment
-              </button>
+            </form>
+          </div>
+
+          {/* Comments Section */}
+          <div
+            className={`rounded-2xl p-6 shadow-lg border ${
+              darkMode
+                ? "border-gray-700/50 bg-gray-800/30 backdrop-blur-sm"
+                : "border-gray-200/50 bg-white/60 backdrop-blur-sm"
+            }`}
+          >
+            <h3 className="text-xl font-bold mb-6">Comments ({question.comments?.length || 0})</h3>
+            <div className="space-y-4">
+              {question.comments && question.comments.length > 0 ? (
+                question.comments.map((comment, idx) => (
+                  <div
+                    key={comment.id || idx}
+                    className={`p-4 rounded-xl border transition-all hover:shadow-md ${
+                      darkMode
+                        ? "bg-gray-800/50 border-gray-700/50 hover:bg-gray-800/70"
+                        : "bg-white/80 border-gray-200/50 hover:bg-white"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-gradient-to-r from-red-500 to-red-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                          {comment.author.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <span className="font-semibold">{comment.author}</span>
+                          <p className="text-sm text-gray-500">{new Date(comment.timestamp).toLocaleDateString()}</p>
+                        </div>
+                      </div>
+                      {currentUser && comment.authorId === currentUser.uid && (
+                        <button
+                          onClick={() => handleDeleteComment(idx)}
+                          className="text-red-500 hover:bg-red-500/10 px-3 py-1 rounded-lg transition-colors text-sm font-medium"
+                          title="Delete comment"
+                        >
+                          Delete
+                        </button>
+                      )}
+                    </div>
+                    <p className="whitespace-pre-line leading-relaxed">{comment.text}</p>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-12">
+                  <div className="text-4xl mb-4">💭</div>
+                  <p className="text-gray-500 text-lg">No comments yet. Be the first to comment!</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
-      )}
+
+        {/* Sidebar */}
+        <aside className="hidden lg:block w-80">
+          <div
+            className={`rounded-2xl p-6 shadow-lg border sticky top-24 ${
+              darkMode
+                ? "border-gray-700/50 bg-gray-800/30 backdrop-blur-sm"
+                : "border-gray-200/50 bg-white/60 backdrop-blur-sm"
+            }`}
+          >
+            <h3 className="text-xl font-bold mb-4">Related Questions</h3>
+            <div className="space-y-3">
+              {relatedQuestions.map((q) => (
+                <Link
+                  key={q.id}
+                  to={`/community/question/${q.id}`}
+                  className={`block p-3 rounded-xl transition-all hover:shadow-md ${
+                    darkMode ? "hover:bg-gray-800/50 hover:text-red-400" : "hover:bg-white/80 hover:text-red-500"
+                  }`}
+                >
+                  <p className="font-medium line-clamp-2">{q.title}</p>
+                  <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                    <span>❤️ {q.likes || 0}</span>
+                    <span>💬 {q.comments?.length || 0}</span>
+                  </div>
+                </Link>
+              ))}
+              {relatedQuestions.length === 0 && (
+                <div className="text-center py-8">
+                  <div className="text-3xl mb-2">🔍</div>
+                  <p className="text-gray-500">No related questions found</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </aside>
+      </main>
     </div>
-  );
+  )
 }

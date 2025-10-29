@@ -17,8 +17,9 @@ import Profile from './Pages/Profile'
 import Landing from './Pages/Landing'
 import PlayQuiz from './Pages/PlayQuiz'
 import TestRegister from './Pages/TestRegister'
-import PrivateRoute from './components/PrivateRoute'
+import PrivateRoute from './Components/PrivateRoute'
 import { AuthProvider, useAuth } from './context/AuthContext'
+import { Analytics } from "@vercel/analytics/react"
 
 // Only allow About, Contact, Register, Login if not logged in
 const PublicOnlyRoute = ({ children }) => {
@@ -50,6 +51,8 @@ const ForceLanding = ({ children }) => {
 function App() {
 
   return (
+    <>
+
     <AuthProvider>
       <BrowserRouter>
         <ForceLanding>
@@ -89,6 +92,8 @@ function App() {
         <Footer/>
       </BrowserRouter>
     </AuthProvider>
+    <Analytics />
+    </>
   )
 }
 

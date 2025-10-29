@@ -1,167 +1,267 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Navbar from '../components/Navbar'; // Adjust import path as needed
-import HomeImage from '../assets/homeImage.webp'
+"use client"
 
+import { useState } from "react"
+import { useNavigate } from "react-router-dom"
+import Navbar from "../Components/Navbar"
+import HomeImage from "../assets/homeImage.webp"
 
 const Home = () => {
-  const [videoUrl, setVideoUrl] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const navigate = useNavigate();
+  const [videoUrl, setVideoUrl] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+  const navigate = useNavigate()
 
-  const API_KEY = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6IjEifQ.eyJpc3MiOiJuYWRsZXMiLCJpYXQiOiIxNzQ1Mjg4MzYyIiwicHVycG9zZSI6ImFwaV9hdXRoZW50aWNhdGlvbiIsInN1YiI6Ijc4OTc3Y2U3MjZmMzRiZDFhZTcwOTJlMTcyOGY1ODIxIn0.-ikSG1v9D6csDJaNWLpz7ct4dRdyHQTxN1CffJKegTQ';
-  const GEMINI_API_KEY = 'AIzaSyA6j1QQ77ETh5v7ImpSCWT6ZCWVDlGnOSg';
+  const API_KEY =
+    "sd_a4bb48c811685b2bc4911cfc5434188e"
+  const GEMINI_API_KEY = "AIzaSyB4Sq0TybI3sfwlR_Vze4IljxdgX4rb80U"
 
   const getYouTubeVideoId = (url) => {
     const regexes = [
       /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/|youtube\.com\/user\/\S+\/\S+\/\S+|youtube\.com\/user\/\S+\/\S+|youtube\.com\/\S+\/\S+\/\S+|youtube\.com\/\S+\/\S+|youtube\.com\/\S+)([^"&?/\s]{11})/,
-      /(?:youtube\.com.*(?:v=|\/v\/|\/embed\/)|youtu\.be\/)([^"&?/\s]{11})/
-    ];
+      /(?:youtube\.com.*(?:v=|\/v\/|\/embed\/)|youtu\.be\/)([^"&?/\s]{11})/,
+    ]
     for (const regex of regexes) {
-      const match = url.match(regex);
-      if (match && match[1]) return match[1];
+      const match = url.match(regex)
+      if (match && match[1]) return match[1]
     }
-    return null;
-  };
+    return null
+  }
 
   const getTranscript = async () => {
     if (!videoUrl) {
-      setError('Please enter a YouTube URL');
-      return;
+      setError("Please enter a YouTube URL")
+      return
     }
-    setLoading(true);
-    setError('');
+    setLoading(true)
+    setError("")
     try {
-      const videoId = getYouTubeVideoId(videoUrl);
+      const videoId = getYouTubeVideoId(videoUrl)
       if (!videoId) {
-        setError('Invalid YouTube URL. Please enter a valid YouTube video link.');
-        setLoading(false);
-        return;
+        setError("Invalid YouTube URL. Please enter a valid YouTube video link.")
+        setLoading(false)
+        return
       }
       const response = await fetch(`https://api.supadata.ai/v1/youtube/transcript?videoId=${videoId}&text=true`, {
-        method: 'GET',
+        method: "GET",
         headers: {
-          'x-api-key': API_KEY,
-          'Content-Type': 'application/json'
-        }
-      });
-      const data = await response.json();
+          "x-api-key": API_KEY,
+          "Content-Type": "application/json",
+        },
+      })
+      const data = await response.json()
       if (!response.ok || !data?.content) {
-        throw new Error(data?.message || 'No transcript found for this video');
+        throw new Error(data?.message || "No transcript found for this video")
       }
-      const notesResponse = await processWithGemini(data.content, videoId);
-      navigate('/notes', {
+      const notesResponse = await processWithGemini(data.content, videoId)
+      navigate("/notes", {
         state: {
           transcript: data.content,
           notes: notesResponse,
           videoId: videoId,
           videoUrl: videoUrl,
-          lang: data.lang || 'en',
-          availableLangs: data.availableLangs || ['en']
-        }
-      });
+          lang: data.lang || "en",
+          availableLangs: data.availableLangs || ["en"],
+        },
+      })
     } catch (err) {
-      setError(err.message || 'Something went wrong while processing the video');
+      setError(err.message || "Something went wrong while processing the video")
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const processWithGemini = async (transcript) => {
-    const truncatedTranscript = transcript.length > 30000
-      ? transcript.substring(0, 30000) + "... (transcript truncated due to length)"
-      : transcript;
+    const truncatedTranscript =
+      transcript.length > 30000
+        ? transcript.substring(0, 30000) + "... (transcript truncated due to length)"
+        : transcript
 
-    const apiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+    const apiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`
     const payload = {
-      contents: [{
-        parts: [{
-          text: `Create comprehensive, well-structured notes from the following YouTube video transcript. 
+      contents: [
+        {
+          parts: [
+            {
+              text: `Create comprehensive, well-structured notes from the following YouTube video transcript. 
           Break it down into sections with clear headings, don't use any puctuation marks , also remove all the special symbols used, don't use asterisk (*) symbol in the lines and summarize main ideas, make sure it relates to the topic of the video and should also include examples that simplifies learning.
           Format the response in markdown.
           TRANSCRIPT:
-          ${truncatedTranscript}`
-        }]
-      }],
+          ${truncatedTranscript}`,
+            },
+          ],
+        },
+      ],
       generationConfig: {
         temperature: 0.2,
         topK: 40,
         topP: 0.95,
         maxOutputTokens: 8192,
-      }
-    };
+      },
+    }
 
     const response = await fetch(apiEndpoint, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json'
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify(payload)
-    });
+      body: JSON.stringify(payload),
+    })
 
-    const data = await response.json();
+    const data = await response.json()
     if (!response.ok || data.error) {
-      throw new Error('Failed to generate notes with AI');
+      throw new Error("Failed to generate notes with AI")
     }
 
-    return data.candidates?.[0]?.content?.parts?.[0]?.text || 'No content returned.';
-  };
+    return data.candidates?.[0]?.content?.parts?.[0]?.text || "No content returned."
+  }
 
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      getTranscript();
+    if (e.key === "Enter") {
+      getTranscript()
     }
-  };
+  }
 
   return (
     <>
       <Navbar />
-    <div className="mt-20 px-6 md:px-10 lg:px-20 font-semibold min-h-[70vh]">
-      <div className="flex flex-col md:flex-row gap-10 lg:gap-60 items-center">
-        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight text-center md:text-left">
-          What Do You Want <br />To <span id='redLink'>Summarize ?</span>
-        </h1>
-        <img src={HomeImage} alt="" className='h-70' />
-      </div>
+      <div className="min-h-screen bg-transparent">
+        <div className="pt-24 pb-16 px-6">
+          <div className="max-w-7xl mx-auto">
+            {/* Hero Section */}
+            <div className="grid lg:grid-cols-2 gap-12 items-center mb-16">
+              <div className="space-y-8">
+                <div className="space-y-4">
+                  <h1 className="text-5xl lg:text-6xl font-bold leading-tight text-gray-900">
+                    What Do You Want
+                    <br />
+                    To <span className="text-red-500">Summarize</span>?
+                  </h1>
+                  <p className="text-xl text-gray-600 font-normal max-w-lg">
+                    Transform any YouTube video into comprehensive, well-structured notes with AI-powered summarization.
+                  </p>
+                </div>
 
-      <div className="flex flex-col sm:flex-row gap-4 items-center justify-center mt-12">
-        <input
-          type="text"
-          value={videoUrl}
-          onChange={(e) => setVideoUrl(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Paste YouTube link and press Enter"
-          className="p-2 border border-gray-300 rounded w-full sm:w-[400px] md:w-[500px] lg:w-[600px]"
-          disabled={loading}
-        />
-        <button
-          onClick={getTranscript}
-          disabled={loading || !videoUrl}
-          className="bg-red-500 hover:bg-black text-white font-medium py-2 px-4 rounded-lg disabled:bg-red-400 transition w-full sm:w-auto"
-        >
-          {loading ? 'Processing...' : '->'}
-        </button>
-      </div>
+                {/* Input Section */}
+                <div className="space-y-4">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={videoUrl}
+                      onChange={(e) => setVideoUrl(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      placeholder="Paste YouTube link here..."
+                      className="w-full px-6 py-4 text-lg border-2 border-gray-200 rounded-2xl focus:outline-none focus:border-red-500 focus:ring-4 focus:ring-red-500/10 transition-all duration-300 bg-white shadow-sm"
+                      disabled={loading}
+                    />
+                    <button
+                      onClick={getTranscript}
+                      disabled={loading || !videoUrl}
+                      className="absolute right-2 top-2 bottom-2 px-6 bg-red-500 hover:bg-black text-white font-medium rounded-xl disabled:bg-red-400 transition-all duration-300 hover:shadow-lg disabled:cursor-not-allowed"
+                    >
+                      {loading ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                          <span>Processing</span>
+                        </div>
+                      ) : (
+                        "→"
+                      )}
+                    </button>
+                  </div>
 
-      {error && (
-        <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded text-center max-w-xl mx-auto">
-          <p>{error}</p>
-        </div>
-      )}
+                  {/* Quick Actions */}
+                  <div className="flex flex-wrap gap-2">
+                    <span className="text-sm text-gray-500">Try:</span>
+                    <button
+                      onClick={() => setVideoUrl("https://www.youtube.com/watch?v=dQw4w9WgXcQ")}
+                      className="text-sm text-red-500 hover:text-red-600 font-medium transition-colors"
+                    >
+                      Sample Video
+                    </button>
+                    <span className="text-gray-300">•</span>
+                    <button
+                      onClick={() => setVideoUrl("")}
+                      className="text-sm text-gray-500 hover:text-gray-600 transition-colors"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                </div>
 
-      {loading && (
-        <div className="mt-6 text-center">
-          <p className="text-gray-600">This may take a minute or two...</p>
-          <div className="mt-2 flex justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                {/* Error Message */}
+                {error && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl">
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 text-red-500">⚠</div>
+                      <p className="font-medium">{error}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Loading State */}
+                {loading && (
+                  <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-xl">
+                    <div className="flex items-center gap-3">
+                      <div className="w-5 h-5 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"></div>
+                      <div>
+                        <p className="font-medium">Processing your video...</p>
+                        <p className="text-sm text-blue-600">This may take a minute or two</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Image Section */}
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-red-500/10 to-transparent rounded-3xl blur-3xl"></div>
+                <div className="relative bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-xl border border-white/20">
+                  <img
+                    src={HomeImage || "/placeholder.svg?height=400&width=500"}
+                    alt="Summarization illustration"
+                    className="w-full h-auto object-contain max-h-96"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Features Section */}
+            <div className="grid md:grid-cols-3 gap-8">
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-100/50 hover:shadow-xl transition-all duration-300">
+                <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center mb-4">
+                  <div className="text-red-500 text-xl">🎯</div>
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">Smart Summarization</h3>
+                <p className="text-gray-600">
+                  AI-powered analysis extracts key points and creates structured notes from any YouTube video.
+                </p>
+              </div>
+
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-100/50 hover:shadow-xl transition-all duration-300">
+                <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center mb-4">
+                  <div className="text-red-500 text-xl">⚡</div>
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">Lightning Fast</h3>
+                <p className="text-gray-600">
+                  Get comprehensive notes in minutes, not hours. Save time while learning more effectively.
+                </p>
+              </div>
+
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-100/50 hover:shadow-xl transition-all duration-300">
+                <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center mb-4">
+                  <div className="text-red-500 text-xl">📚</div>
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">Structured Learning</h3>
+                <p className="text-gray-600">
+                  Well-organized sections with clear headings and examples for better understanding.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
-      )}
-    </div>
+      </div>
     </>
+  )
+}
 
-  );
-};
-
-export default Home;
+export default Home
