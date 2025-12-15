@@ -76,7 +76,7 @@ const Home = () => {
         ? transcript.substring(0, 30000) + "... (transcript truncated due to length)"
         : transcript
 
-    const apiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`
+    const apiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${GEMINI_API_KEY}`
     const payload = {
       contents: [
         {
